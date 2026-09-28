@@ -1,0 +1,49 @@
+# tickets.toml — initiative NexaMind AI
+
+[[epic]]
+id = 1
+slug = "epic-fondations-auth"
+title = "Fondations, Base Supabase, Authentification & Rôles"
+covers = ["FR-1", "FR-2", "FR-3", "FR-4"]
+
+[[epic]]
+id = 2
+slug = "epic-ingestion-ressources"
+title = "Gestion Documentaire & Pipeline d'Ingestion Vectorielle"
+covers = ["FR-5", "FR-6", "FR-7"]
+after = [{ epic = 1, needs = "Auth, Rôles et Schéma Supabase opérationnels" }]
+
+[[epic]]
+id = 3
+slug = "epic-recherche-semantique"
+title = "Moteur de Recherche Textuelle & Sémantique"
+covers = ["FR-8", "FR-9"]
+after = [{ epic = 2, needs = "Chunks vectorisés et stockés dans pgvector" }]
+
+[[epic]]
+id = 4
+slug = "epic-assistant-rag"
+title = "Assistant Conversationnel RAG & Citations Zéro-Hallucination"
+covers = ["FR-10", "FR-11", "FR-12", "FR-13"]
+after = [{ epic = 3, needs = "Fonction de similarité vectorielle match_chunks validée" }]
+
+[[epic]]
+id = 5
+slug = "epic-resume-historique"
+title = "Synthèse Documentaire Automatique & Historique Personnel"
+covers = ["FR-14", "FR-15", "FR-16"]
+after = [{ epic = 4, needs = "Service IA Gemini et sessions de conversation établies" }]
+
+[[epic]]
+id = 6
+slug = "epic-consultation-ressource"
+title = "Consultation de Ressource & Accès au Passage Cité"
+covers = ["FR-8", "FR-9", "FR-11"]
+after = [{ epic = 5, needs = "Fiche /resources/[id] (story 5.1) et relecture avec citations (story 4.4) en place" }]
+
+[[epic]]
+id = 7
+slug = "epic-coherence-visuelle"
+title = "Cohérence Visuelle & Refonte UX (rendu sobre, professionnel, épuré)"
+covers = []
+after = [{ epic = 6, needs = "Tous les écrans du MVP livrés et validés (audit de sécurité du 2026-09-27 inclus)" }]

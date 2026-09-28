@@ -1,0 +1,57 @@
+{
+  "name": "nexamind-ai",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test:rate-limit": "node --test --experimental-strip-types scripts/rate-limit.test.ts",
+    "test:guard": "node --test --experimental-strip-types scripts/route-guard.test.ts",
+    "test:dashboard": "node --test --experimental-strip-types scripts/dashboard.test.ts",
+    "test:resources": "node --test --experimental-strip-types scripts/resources-validation.test.ts",
+    "test:resources-management": "node --test --experimental-strip-types scripts/resources-management.test.ts",
+    "test:embeddings": "node --test --experimental-strip-types scripts/embeddings.test.ts",
+    "test:ingestion": "node --test --experimental-strip-types scripts/chunking.test.ts scripts/embeddings.test.ts scripts/ingestion.test.ts",
+    "test:search-rpc": "node --test --experimental-strip-types scripts/search-rpc.test.ts",
+    "test:search": "node --test --experimental-strip-types scripts/search.test.ts",
+    "test:search-ui": "node --test --experimental-strip-types scripts/search-ui.test.ts",
+    "test:rag": "node --test --experimental-strip-types scripts/rag.test.ts",
+    "test:chat": "node --test --experimental-strip-types scripts/chat.test.ts",
+    "test:chat-ui": "node --test --experimental-strip-types scripts/chat-ui.test.ts",
+    "test:conversation": "node --test --experimental-strip-types scripts/conversation.test.ts",
+    "test:summary": "node --test --experimental-strip-types scripts/summary.test.ts",
+    "test:history": "node --test --experimental-strip-types scripts/history.test.ts",
+    "test:search-history": "node --test --experimental-strip-types scripts/search-history.test.ts",
+    "test:resource-view": "node --test --experimental-strip-types scripts/resource-view.test.ts",
+    "test:security": "node --test --experimental-strip-types scripts/security.test.ts",
+    "test:ui-system": "node --test --experimental-strip-types scripts/ui-system.test.ts",
+    "test": "node --test --experimental-strip-types \"scripts/*.test.ts\"",
+    "validate:chat-live": "node scripts/validate-chat-live.mjs",
+    "validate:mvp-live": "node scripts/validate-mvp-live.mjs",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "1.2.22",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.2",
+    "ai": "4.3.19",
+    "mammoth": "^1.13.0",
+    "next": "16.3.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "unpdf": "^1.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "typescript": "^5"
+  }
+}

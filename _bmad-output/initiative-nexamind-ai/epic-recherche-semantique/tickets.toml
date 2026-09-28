@@ -1,0 +1,64 @@
+# tickets.toml — Epic 3: Moteur de Recherche Textuelle & Sémantique
+
+[[entry]]
+id = 1
+type = "story"
+title = "Fonction RPC Supabase pour la Recherche par Similarité Cosinus"
+description = """
+Créer et déployer la fonction PostgreSQL match_chunks() dans Supabase pour interroger pgvector.
+Prendre en paramètres un vecteur de requête (768d), un seuil de similarité minimal (ex. 0.65) et un nombre maximum de résultats (limit).
+Filtrer strictement pour ne retourner que les morceaux de ressources au statut 'Prête'.
+"""
+covers = ["FR-9"]
+prerequisites = "Chunks stockés dans pgvector avec index ivfflat ou hnsw (Story 2.3)"
+acceptance_criteria = """
+- La fonction match_chunks() renvoie les morceaux les plus proches classés par score de similarité décroissant.
+- Aucune ressource au statut 'En cours' ou 'Échec' n'est retournée.
+- Le temps d'exécution SQL est inférieur à 150ms sur une base de 10 000 chunks.
+"""
+edge_cases_and_errors = """
+- Requête avec un vecteur invalide ou de mauvaise dimension : lever une erreur SQL contrôlée.
+"""
+
+[[entry]]
+id = 2
+type = "story"
+title = "Service de Recherche Hybride et Route API de Recherche"
+after = [1]
+description = """
+Créer le service de recherche côté serveur (lib/ai/search.ts) et la route API /api/search.
+Calculer l'embedding de la requête utilisateur avec text-embedding-004 puis appeler match_chunks().
+Compléter par une recherche textuelle simple (titre, étiquettes, auteur) pour obtenir une recherche hybride robuste.
+"""
+covers = ["FR-8", "FR-9"]
+prerequisites = "Fonction RPC match_chunks opérationnelle (Story 3.1)"
+acceptance_criteria = """
+- Une requête comme 'télétravail' retrouve une ressource 'Politique de travail à distance' même sans mot-clé identique (recherche sémantique).
+- Chaque résultat retourne l'ID de la ressource, le titre, la catégorie, la date, et l'extrait exact ayant déclenché la correspondance.
+- Le temps total de réponse reste inférieur à 1.5 seconde.
+"""
+edge_cases_and_errors = """
+- Requête vide ou composée d'espaces : renvoyer une réponse vide sans appel d'API IA.
+"""
+
+[[entry]]
+id = 3
+type = "story"
+title = "Interface Utilisateur de Recherche Documentaire Mobile & Desktop"
+after = [2]
+description = """
+Créer la page /search avec filtres horizontaux par catégorie (DESIGN.md / EXPERIENCE.md).
+Afficher les résultats sous forme de cartes tactiles réactives (titre, catégorie, extrait surligné).
+Gérer l'état de chargement et l'état vide explicite lorsqu'aucun résultat n'est trouvé.
+"""
+covers = ["FR-8"]
+prerequisites = "Route API de recherche fonctionnelle (Story 3.2)"
+acceptance_criteria = """
+- La recherche s'exécute à la saisie ou à la validation du formulaire.
+- Filtres combinables par catégorie au clic tactile.
+- Si aucun document ne correspond, afficher un message d'aide suggérant de reformuler ou d'interroger l'assistant (jamais d'écran vide).
+- Le clic sur un résultat ouvre la consultation de la ressource.
+"""
+edge_cases_and_errors = """
+- Déconnexion réseau pendant la recherche : afficher un encadré d'erreur avec bouton 'Réessayer'.
+"""

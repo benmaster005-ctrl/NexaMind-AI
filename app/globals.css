@@ -1,0 +1,189 @@
+/**
+ * Source unique des styles — tokens de DESIGN.md (« Clean Tech Slate »).
+ *
+ * Regle (story 7.1) : aucun module CSS ne declare de couleur en dur ; tous
+ * consomment ces variables. Comme le theme sombre ne redefinit que les tokens,
+ * chaque ecran en herite automatiquement : plus de bloc
+ * `@media (prefers-color-scheme: dark)` a maintenir ecran par ecran.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* --- Surfaces ------------------------------------------------------- */
+  --bg-page: #f8fafc; /* slate_50 — fond de page */
+  --surface: #ffffff; /* cartes, en-tetes, composer (equivalent clair de dark_surface) */
+  --surface-sunken: #f1f5f9; /* slate_100 — blocs secondaires, champs, boutons neutres */
+  --bubble-assistant: #f1f5f9; /* DESIGN.md 2 : bulles assistant en slate_100 */
+
+  /* --- Bordures ------------------------------------------------------- */
+  --border: #e2e8f0; /* slate_200 */
+  --border-strong: #cbd5e1; /* slate_300 — champs actifs */
+
+  /* --- Textes --------------------------------------------------------- */
+  --text: #0f172a; /* slate_900 */
+  --text-secondary: #334155; /* slate_700 */
+  --text-muted: #64748b; /* slate_500 — metadonnees */
+
+  /* --- Accent (sobre : reserve aux actions et a l'onglet actif) -------- */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --on-primary: #ffffff;
+  --accent-text: #2563eb; /* liens, chiffre cle, onglet actif */
+  --primary-subtle: #eff6ff;
+  --primary-subtle-strong: #dbeafe;
+  --primary-subtle-border: #93c5fd;
+  --primary-soft: #bfdbfe;
+
+  /* --- Semantique ----------------------------------------------------- */
+  --warning-subtle: #fef3c7;
+  --warning-border: #fcd34d;
+  --warning-text: #78350f;
+  --danger-subtle: #fef2f2;
+  --danger-border: #fecaca;
+  --danger-text: #b91c1c;
+  --highlight: #fef08a; /* surlignage des termes trouves */
+  --focus-ring: #2563eb;
+
+  /* --- Typographie (DESIGN.md 3) --------------------------------------- */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.875rem;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* --- Espacements et rayons (DESIGN.md 4) ----------------------------- */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow-sheet: 0 -8px 24px rgb(15 23 42 / 0.16);
+
+  /* --- Voile des tiroirs (une seule recette pour les 3 overlays) ----- */
+  --scrim: rgb(15 23 42 / 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-page: #0b1120;
+    --surface: #111827;
+    --surface-sunken: #0b1120;
+    --bubble-assistant: #111827; /* dark_surface : bulle assistant plus claire que la page */
+
+    --border: #1f2937;
+    --border-strong: #374151;
+
+    --text: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-muted: #9ca3af;
+
+    --primary: #3b82f6; /* brand.primary_dark */
+    --primary-hover: #60a5fa;
+    --on-primary: #ffffff;
+    --accent-text: #60a5fa;
+    --primary-subtle: #172554;
+    --primary-subtle-strong: #1e3a8a;
+    --primary-subtle-border: #1e40af;
+    --primary-soft: #1e40af;
+
+    --warning-subtle: #3b2f0b;
+    --warning-border: #92600a;
+    --warning-text: #fde68a;
+    --danger-subtle: #3b1518;
+    --danger-border: #7f1d1d;
+    --danger-text: #fca5a5;
+    --highlight: #4a3f0b;
+    --focus-ring: #60a5fa;
+
+    --shadow-card: none;
+    --shadow-sheet: none;
+    --scrim: rgb(2 6 23 / 0.66);
+  }
+}
+
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  background: var(--bg-page);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: var(--fw-semibold);
+  line-height: 1.25;
+}
+
+/* Un seul anneau de focus pour toute l'application (DESIGN.md 6). */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--primary-subtle-strong);
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

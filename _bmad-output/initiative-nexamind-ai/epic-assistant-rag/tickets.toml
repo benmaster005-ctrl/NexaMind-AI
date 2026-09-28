@@ -1,0 +1,88 @@
+# tickets.toml — Epic 4: Assistant Conversationnel RAG & Citations Zéro-Hallucination
+
+[[entry]]
+id = 1
+type = "story"
+title = "Service RAG avec Injection de Contexte et Règle d'Abstention (AD-1)"
+description = """
+Créer le service de génération RAG (lib/ai/rag.ts).
+Récupérer les k chunks les plus pertinents via le service de recherche vectorielle.
+Injecter ces morceaux dans le prompt système de Google Gemini 1.5 Flash.
+Imposer dans le prompt de ne répondre qu'à partir des sources fournies et de déclencher la formule d'abstention si l'information est absente.
+"""
+covers = ["FR-10", "FR-12"]
+prerequisites = "Moteur de recherche vectorielle fonctionnel (Epic 3)"
+acceptance_criteria = """
+- La réponse produite s'appuie rigoureusement sur le contenu des morceaux injectés.
+- Si la similarité est trop faible (< 0.65) ou si la réponse ne figure pas dans les sources, le système s'abstient explicitement avec la mention convenue dans EXPERIENCE.md.
+- Aucun chiffre, nom ou fait non présent dans les morceaux n'apparaît dans la réponse (règle zéro-hallucination).
+"""
+edge_cases_and_errors = """
+- Question portant sur un sujet hors documents : l'assistant doit refuser d'affabuler et proposer les 2-3 documents les plus proches comme pistes.
+"""
+
+[[entry]]
+id = 2
+type = "story"
+title = "Route de Streaming RAG et Génération des Citations Structurées"
+after = [1]
+description = """
+Créer la route API /api/chat/route.ts exploitant streamText du Vercel AI SDK.
+Associer à chaque réponse les références exactes des morceaux utilisés sous forme de métadonnées de citations (titre, chunkId, extrait).
+Insérer dans le flux de texte les puces de renvoi [1], [2].
+"""
+covers = ["FR-10", "FR-11"]
+prerequisites = "Service RAG configuré (Story 4.1)"
+acceptance_criteria = """
+- La réponse arrive en flux continu (streaming) avec premier jet visible en moins de 1.5s.
+- Les numéros de citations [1], [2] sont insérés fidèlement dans la réponse aux endroits pertinents.
+- Les métadonnées de citations sont retournées conjointement pour affichage dans l'interface.
+- Maximum 5 sources distinctes affichées par réponse.
+"""
+edge_cases_and_errors = """
+- Interruption du flux réseau : couper le streaming proprement et conserver le texte déjà reçu.
+"""
+
+[[entry]]
+id = 3
+type = "story"
+title = "Interface de Chat Mobile & Desktop avec Tiroir de Sources Tactile"
+after = [2]
+description = """
+Développer l'écran de discussion /chat et /chat/[id] (DESIGN.md / EXPERIENCE.md).
+Afficher les bulles de dialogue, la saisie basse fixée au-dessus du clavier et les puces tactiles [1], [2].
+Au clic sur une puce [1], ouvrir un tiroir bas (Bottom Sheet sur mobile / popover sur desktop) affichant le titre du document et l'extrait exact utilisé.
+"""
+covers = ["FR-10", "FR-11", "FR-12"]
+prerequisites = "Route de streaming et citations structurées (Story 4.2)"
+acceptance_criteria = """
+- L'interface s'adapte parfaitement à l'écran mobile sans défilement horizontal.
+- Le clic sur [1] ouvre immédiatement le panneau de source avec l'extrait ciblé.
+- L'état d'abstention affiche un encadré distinct avec icône de bouclier neutre.
+- La zone de saisie est ergonomique (hauteur auto de 1 à 4 lignes).
+"""
+edge_cases_and_errors = """
+- Clic sur une source supprimée : afficher 'Source retirée du fonds documentaire' sans planter l'interface.
+"""
+
+[[entry]]
+id = 4
+type = "story"
+title = "Gestion du Fil de Discussion Multi-Échanges et Titrage Automatique"
+after = [3]
+description = """
+Sauvegarder les échanges dans les tables conversations et messages de Supabase.
+Permettre la poursuite d'une conversation avec maintien du contexte conversationnel récent.
+Générer automatiquement un titre court à la première question posée.
+"""
+covers = ["FR-13"]
+prerequisites = "Interface de chat interactive (Story 4.3)"
+acceptance_criteria = """
+- Une conversation conserve l'ordre de ses questions/réponses et citations.
+- Une question de suivi ('et pour un profil junior ?') prend en compte le contexte précédent.
+- La conversation est automatiquement nommée d'après le premier message.
+- Chaque conversation n'est accessible que par son auteur.
+"""
+edge_cases_and_errors = """
+- Tentative de lecture d'une conversation par un autre utilisateur : interdire l'accès (HTTP 403 / redirection).
+"""

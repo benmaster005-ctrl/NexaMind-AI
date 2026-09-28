@@ -1,0 +1,64 @@
+# tickets.toml — Epic 5: Synthèse Documentaire Automatique & Historique Personnel
+
+[[entry]]
+id = 1
+type = "story"
+title = "Fonctionnalité de Résumé Automatique de Ressource en Points Clés"
+description = """
+Créer l'action serveur / API permettant de demander la synthèse d'une ressource existante au statut 'Prête'.
+Utiliser Gemini 1.5 Flash avec un prompt de synthèse structuré (5 à 8 puces d'essentiel).
+Intégrer le bouton 'Résumer' sur la fiche de consultation d'une ressource et afficher la synthèse dans un modal ou tiroir dédié.
+"""
+covers = ["FR-14"]
+prerequisites = "Gestion documentaire opérationnelle (Epic 2) et connecteur Gemini (Epic 4)"
+acceptance_criteria = """
+- Le résumé produit 5 à 8 puces concises restituant l'essentiel du document.
+- Le temps de génération est inférieur à 10 secondes pour un document standard.
+- Le résumé est accompagné d'un renvoi vers le document complet.
+- Le résultat ne pollue pas la base vectorielle (out of scope de l'index).
+"""
+edge_cases_and_errors = """
+- Document vide ou trop court : indiquer que le document ne nécessite pas de synthèse.
+"""
+
+[[entry]]
+id = 2
+type = "story"
+title = "Écran d'Historique des Conversations et Reprise d'Échange"
+after = [1]
+description = """
+Créer l'écran /history (ou section Historique sur mobile) listant les conversations passées de l'utilisateur.
+Afficher le titre, la date relative et le nombre d'échanges.
+Permettre la réouverture d'une conversation pour reprendre le fil ou relire les citations.
+"""
+covers = ["FR-15"]
+prerequisites = "Persistance des conversations dans Supabase (Story 4.4)"
+acceptance_criteria = """
+- Les conversations sont triées par date décroissante.
+- L'utilisateur ne voit que ses propres conversations (sécurité R-7).
+- Le clic sur une conversation la recharge instantanément dans l'interface de chat avec l'ensemble des citations.
+"""
+edge_cases_and_errors = """
+- Aucune conversation passée : afficher un état vide élégant invitant à démarrer une recherche ou discussion.
+"""
+
+[[entry]]
+id = 3
+type = "story"
+title = "Historique Personnel des Recherches et Rejeu Direct"
+after = [2]
+description = """
+Persister l'historique des requêtes de recherche saisies par l'utilisateur.
+Afficher les recherches récentes sous la barre de recherche et dans la section historique.
+Permettre de relancer en un clic une recherche précédente sur l'état actualisé de la base documentaire.
+"""
+covers = ["FR-16"]
+prerequisites = "Moteur de recherche (Epic 3) et structure d'historique (Story 5.2)"
+acceptance_criteria = """
+- Chaque recherche enregistre l'intitulé exact de la requête et la date.
+- L'utilisateur peut cliquer sur une recherche passée pour la réexécuter instantanément.
+- L'historique des recherches reste strictement personnel.
+"""
+edge_cases_and_errors = """
+- Suppression d'une entrée de l'historique : l'utilisateur peut effacer une recherche de sa liste.
+"""

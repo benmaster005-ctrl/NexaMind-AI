@@ -1,0 +1,88 @@
+# tickets.toml — Epic 1: Fondations, Base Supabase, Authentification & Rôles
+
+[[entry]]
+id = 1
+type = "story"
+title = "Initialisation du Client Supabase et du Schéma SQL Initial"
+description = """
+Installer le SDK Supabase (@supabase/ssr, @supabase/supabase-js) et configurer les clients navigateur et serveur dans lib/supabase/.
+Exécuter le script SQL de base : activation de l'extension pgvector, création des tables avec RLS activé et types TypeScript générés.
+"""
+covers = ["FR-3"]
+prerequisites = "Projet Next.js 16 + TypeScript configuré"
+acceptance_criteria = """
+- Les clients Supabase navigateur et serveur sont exportés depuis lib/supabase/.
+- L'extension pgvector est activée dans la base PostgreSQL.
+- Les variables d'environnement NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont typées et chargées sans fuite de clé secrète.
+"""
+edge_cases_and_errors = """
+- Variable d'environnement manquante : lever une erreur explicite au démarrage du serveur.
+"""
+
+[[entry]]
+id = 2
+type = "story"
+title = "Flux d'Inscription et de Connexion avec Attribution des Rôles"
+after = [1]
+description = """
+Créer les pages /login et /register avec design Clean Tech Slate (DESIGN.md).
+Gérer l'authentification e-mail/mot de passe (min 8 caractères) via Supabase Auth.
+Attribuer par défaut le rôle 'collaborateur' dans user_metadata, et permettre l'assignation du rôle 'admin'.
+"""
+covers = ["FR-1", "FR-2"]
+prerequisites = "Client Supabase et schéma auth configurés (Story 1.1)"
+acceptance_criteria = """
+- Un nouvel utilisateur peut s'inscrire (/register) avec e-mail valide et mot de passe >= 8 caractères.
+- Un mot de passe de moins de 8 caractères est refusé avec message explicite.
+- Un e-mail déjà existant est refusé sans écraser le compte ni divulguer d'informations sensibles.
+- L'utilisateur connecté est redirigé vers le tableau de bord avec session active HttpOnly.
+- 5 échecs consécutifs bloquent temporairement les tentatives (protection anti-bruteforce).
+"""
+edge_cases_and_errors = """
+- Saisie d'identifiants incorrects : afficher un message d'erreur neutre.
+- Tentative d'accès hors ligne : afficher un retour d'erreur réseau propre.
+"""
+
+[[entry]]
+id = 3
+type = "story"
+title = "Middleware de Protection des Routes et Gestion des Sessions"
+after = [2]
+description = """
+Mettre en place le middleware Next.js pour intercepter toute requête vers / et /admin/*.
+Rediriger les requêtes non authentifiées vers /login.
+Interdire l'accès aux routes /admin/* aux utilisateurs ne possédant pas le rôle 'admin' (code 403 / redirection).
+Gérer la déconnexion propre avec invalidation de session.
+"""
+covers = ["FR-3"]
+prerequisites = "Pages et flux d'authentification fonctionnels (Story 1.2)"
+acceptance_criteria = """
+- Accéder à / sans session redirige immédiatement vers /login.
+- Un utilisateur connecté avec le rôle 'collaborateur' tentant d'accéder à /admin/resources est bloqué avec code 403 ou redirection.
+- La déconnexion détruit le cookie de session et empêche tout retour arrière avec réaffichage de données privées.
+"""
+edge_cases_and_errors = """
+- Session expirée : rediriger vers /login avec message d'information invitant à se reconnecter.
+"""
+
+[[entry]]
+id = 4
+type = "story"
+title = "Tableau de Bord Unifié Responsive Conditionné au Rôle"
+after = [3]
+description = """
+Créer la page d'accueil / (Tableau de bord) respectant la charte DESIGN.md et EXPERIENCE.md.
+Afficher le compteur de ressources prêtes, les raccourcis vers la recherche et le chat, et la liste des 5 dernières conversations.
+Conditionner la navigation : afficher l'onglet ou le bouton d'administration uniquement si l'utilisateur a le rôle 'admin'.
+"""
+covers = ["FR-4"]
+prerequisites = "Middleware et session avec rôles établis (Story 1.3)"
+acceptance_criteria = """
+- Le tableau de bord s'affiche en moins de 2 secondes sur mobile et ordinateur.
+- Sur mobile, la barre de navigation basse affiche [Accueil, Recherche, Assistant, Historique] pour un collaborateur, et [Accueil, Recherche, Assistant, Gérer] pour un administrateur.
+- Si aucune conversation n'existe, afficher un état vide invitant à poser une première question.
+- Le nombre total de ressources au statut 'Prête' est affiché fidèlement.
+"""
+edge_cases_and_errors = """
+- Échec de récupération des métriques : afficher les raccourcis avec indicateur d'indisponibilité temporaire sans bloquer l'écran.
+"""

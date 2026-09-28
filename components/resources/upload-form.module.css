@@ -1,0 +1,98 @@
+/**
+ * Styles du dépôt documentaire admin — charte "Clean Tech Slate" (DESIGN.md).
+ * Mobile-first sans Tailwind : inputs 16px (anti-zoom iOS), tactiles 44px+,
+ * thème clair/sombre auto.
+ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+}
+
+.input:focus {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  border-color: var(--focus-ring);
+}
+
+select.input {
+  appearance: auto;
+}
+
+.error {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--danger-text);
+  background: var(--danger-subtle);
+  border: 1px solid var(--danger-border);
+  border-radius: 0.5rem;
+}
+
+.info {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+}
+
+.submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--on-primary);
+  background: var(--primary);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.submit:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

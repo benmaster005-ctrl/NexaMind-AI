@@ -1,0 +1,99 @@
+/** Fiche document — complement de dashboardStyles.card, meme typographie. */
+.meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.tags {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.notice {
+  margin: 0.875rem 0 0;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--warning-text);
+  background: var(--warning-subtle);
+  border: 1px solid var(--warning-border);
+  border-radius: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-top: 1.125rem;
+}
+
+/* 6.1 : contenu du document en sections. */
+.document {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.passage {
+  padding: 0.75rem 0.875rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border-strong);
+  border-radius: 0.5rem;
+}
+
+.passageActive {
+  padding: 0.75rem 0.875rem;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-subtle-border);
+  border-left: 4px solid var(--primary);
+  border-radius: 0.5rem;
+}
+
+.passageLabel {
+  margin: 0 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.passageBadge {
+  margin-left: 0.5rem;
+  padding: 0.0625rem 0.5rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.passageText {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.documentLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--primary-hover);
+  text-decoration: none;
+}
+
+.documentLink:hover,
+.documentLink:focus-visible {
+  text-decoration: underline;
+}

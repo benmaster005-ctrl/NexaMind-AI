@@ -1,0 +1,43 @@
+/**
+ * Jeu d'icones SVG du socle (story 7.1).
+ *
+ * Sobres par construction : trait de 1,5 px, `currentColor` (donc l'etat actif
+ * se colore tout seul), sans dependance externe ni requete reseau. Composant
+ * SANS etat : utilisable depuis un Server Component.
+ */
+import type { IconName } from "@/lib/dashboard/helpers";
+
+interface IconProps {
+  name: IconName;
+  className?: string;
+}
+
+const PATHS: Record<IconName, string> = {
+  home: "M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4v-5h-6v5H5a1 1 0 0 1-1-1z",
+  search: "M11 4a7 7 0 1 0 4.19 12.61L20 21.42 21.42 20l-4.81-4.81A7 7 0 0 0 11 4zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z",
+  chat: "M20 5H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v4l5-4h8a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z",
+  history: "M12 4a8 8 0 1 1-7.4 5.06l-1.9-.4A10 10 0 1 0 12 2v2zm1 4h-2v7l5 3 1-1.7-4-2.4z",
+  admin: "M12 3 3 7v2h18V7zM5 11v7H3v2h18v-2h-2v-7h-2v7h-3v-7h-2v7H7v-7z",
+};
+
+export function Icon({ name, className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={PATHS[name]} />
+    </svg>
+  );
+}
+
+export default Icon;

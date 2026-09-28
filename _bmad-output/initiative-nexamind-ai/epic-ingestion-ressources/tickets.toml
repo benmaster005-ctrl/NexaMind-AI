@@ -1,0 +1,88 @@
+# tickets.toml — Epic 2: Gestion Documentaire & Pipeline d'Ingestion Vectorielle
+
+[[entry]]
+id = 1
+type = "story"
+title = "Téléversement de Fichiers vers Supabase Storage Réservé à l'Admin"
+description = """
+Créer l'interface /admin/resources permettant le téléversement de documents (PDF, DOCX, TXT, MD).
+Vérifier côté serveur le rôle admin et rejeter tout autre rôle avec code HTTP 403.
+Stocker le fichier dans le bucket privé Supabase Storage et insérer une ligne dans la table resources avec statut 'En cours'.
+"""
+covers = ["FR-5", "FR-7"]
+prerequisites = "Epic 1 terminé (Auth et rôles fonctionnels)"
+acceptance_criteria = """
+- Formats autorisés : PDF (texte sélectionnable), DOCX, TXT, MD.
+- Les fichiers non supportés (images, audio, vidéo, zip) sont rejetés avec message explicite.
+- Seul un administrateur peut déclencher l'upload.
+- La ressource créée enregistre son titre, sa catégorie (liste fermée), ses tags et l'ID de l'admin auteur.
+"""
+edge_cases_and_errors = """
+- Fichier > 10 Mo : rejeter avec message de limite de taille.
+- Tentative d'upload par un collaborateur standard via API : retourner HTTP 403 Forbidden.
+"""
+
+[[entry]]
+id = 2
+type = "story"
+title = "Pipeline d'Extraction de Texte et Découpage en Morceaux (Chunking)"
+after = [1]
+description = """
+Implémenter le service d'extraction de texte (parsers PDF, DOCX, texte brut) et le découpage en blocs (lib/ai/chunking.ts).
+Découper en morceaux de 400 à 500 tokens avec 50 tokens de chevauchement en préservant le titre du document dans chaque bloc.
+"""
+covers = ["FR-6"]
+prerequisites = "Dépôt de fichiers fonctionnel (Story 2.1)"
+acceptance_criteria = """
+- Le texte est extrait fidèlement sans altération des titres et listes.
+- Chaque morceau respecte la fenêtre de 400 à 500 tokens.
+- Chaque morceau retient l'identifiant de la ressource parente et son index d'ordre.
+- Si le document est un PDF scanné (aucun texte extractible), le statut passe à 'Échec' avec explication claire.
+"""
+edge_cases_and_errors = """
+- Fichier corrompu ou illisible : marquer la ressource en statut 'Échec' avec message d'erreur explicite sans faire planter le serveur.
+"""
+
+[[entry]]
+id = 3
+type = "story"
+title = "Génération d'Embeddings Gemini et Stockage pgvector"
+after = [2]
+description = """
+Connecter Google Gemini text-embedding-004 (768 dimensions) via le Vercel AI SDK.
+Calculer les vecteurs de chaque morceau et les insérer dans la table document_chunks (pgvector).
+Passer le statut de la ressource à 'Prête' une fois l'indexation terminée.
+"""
+covers = ["FR-6"]
+prerequisites = "Service de chunking opérationnel (Story 2.2)"
+acceptance_criteria = """
+- Chaque morceau est vectorisé avec le modèle text-embedding-004 (vecteur float[] de taille 768).
+- Les morceaux et leurs embeddings sont persistés dans document_chunks.
+- La ressource passe au statut 'Prête' à la fin du processus.
+- La durée totale de traitement reste inférieure à 30 secondes pour un document standard.
+"""
+edge_cases_and_errors = """
+- Erreur ou quota d'API Gemini dépassé : basculer la ressource en statut 'Échec' avec possibilité de relance pour l'admin.
+"""
+
+[[entry]]
+id = 4
+type = "story"
+title = "Gestion et Suppression des Ressources avec Déréférencement Vectoriel"
+after = [3]
+description = """
+Créer l'interface de gestion de la liste des ressources pour l'administrateur (/admin/resources).
+Permettre la modification des catégories/tags et la suppression d'une ressource.
+La suppression doit éliminer la ressource de la base, retirer le fichier de Supabase Storage et supprimer tous ses morceaux de pgvector (cascade).
+"""
+covers = ["FR-7"]
+prerequisites = "Indexation vectorielle complète (Story 2.3)"
+acceptance_criteria = """
+- Seul un administrateur peut modifier ou supprimer une ressource.
+- La suppression d'une ressource supprime immédiatement tous ses chunks associés dans pgvector.
+- Après suppression, aucune question de recherche ou de chat ne peut plus retrouver ni citer cette ressource.
+- Une boîte de dialogue de confirmation empêche les suppressions accidentelles sur mobile et desktop.
+"""
+edge_cases_and_errors = """
+- Tentative de suppression sans rôle admin : rejet HTTP 403.
+"""

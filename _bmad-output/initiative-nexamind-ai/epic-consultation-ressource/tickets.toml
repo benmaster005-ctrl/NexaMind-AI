@@ -1,0 +1,27 @@
+# tickets.toml — Epic 6: Consultation de Ressource & Accès au Passage Cité
+
+[[entry]]
+id = 1
+type = "story"
+title = "Consultation du Document dans la Fiche et Ancrage au Passage Cité"
+description = """
+Afficher le contenu du document dans la fiche /resources/[id] à partir des morceaux
+vectorisés déjà stockés, et permettre d'y arriver directement sur le passage cité :
+- depuis un résultat de recherche qui a correspondu sur un morceau donné ;
+- depuis une puce de citation [n] de la réponse de l'assistant.
+Le passage ciblé est surligné et visible au chargement.
+"""
+covers = ["FR-8", "FR-9", "FR-11"]
+prerequisites = "Fiche /resources/[id] (story 5.1) et citations structurées (story 4.2/4.3)"
+acceptance_criteria = """
+- La fiche affiche l'intégralité du contenu du document, dans l'ordre des morceaux, lisible sur mobile et desktop.
+- Un accès ciblé (recherche ou citation) affiche le document avec le passage correspondant surligné, sans défilement manuel.
+- Cliquer une puce de citation de l'assistant mène à la fiche sur le bon passage.
+- Le contenu est rendu en texte React (jamais de HTML brut) : aucune injection possible.
+- Les ressources non indexées gardent leur état actuel (notice « pas encore indexé »), sans zone de contenu vide.
+"""
+edge_cases_and_errors = """
+- Ressource sans aucun morceau indexé : la fiche reste consultable, sans zone de contenu, avec un message explicite.
+- Document volumineux : le rendu reste fluide (pas de rendu massif d'un seul tenant côté client).
+- Identifiant de passage absent ou inconnu (ressource supprimée entre-temps) : on affiche le document complet, sans surlignage, sans erreur.
+"""

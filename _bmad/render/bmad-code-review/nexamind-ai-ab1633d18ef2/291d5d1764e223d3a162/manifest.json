@@ -1,0 +1,67 @@
+{
+  "generation_hash": "291d5d1764e223d3a162",
+  "inputs": {
+    "jinja2_version": "3.1.6",
+    "project_root": "C:\\Users\\EliteDesk\\Desktop\\NexaMind AI",
+    "renderer_sha256": "2c6fe593bfce1deb4783f1138b10b8c628cfa324a4688c9bf1d63ab57f8bc466",
+    "resolved_values": {
+      "config.modules.bmm.implementation_artifacts": "C:/Users/EliteDesk/Desktop/NexaMind AI/_bmad-output/implementation-artifacts",
+      "customization.workflow.activation_steps_append": [],
+      "customization.workflow.activation_steps_prepend": [],
+      "customization.workflow.on_complete": "",
+      "customization.workflow.persistent_facts": [],
+      "customization.workflow.review": "thorough",
+      "customization.workflow.thorough_lenses": [
+        {
+          "id": "blind-hunter",
+          "instruction": "Launch a context-free subagent with this prompt:\n\nConduct a review of CONTENT.\nLook for what's missing, not only what's wrong.\nCompute your finding floor N from the diff file's size: N = min(floor(sqrt(kB) + 1), 10), where kB is the file's size in kilobytes. State the arithmetic in one line, then find at least N issues to fix or improve.\nOutput a Markdown list of findings only — no severity, priority, or ranking.\nIf the content is empty, stop and say so.\nIf you have zero findings, re-check and keep thinking; do not stop with an empty list.\n\nCONTENT: the unified diff at `{diff_file}`. Read that file — it is the content under review.\n\nDo not invoke any skill, and do not spawn subagents of your own — you are the reviewer. Return your findings as text in your final message; do not route them through any findings-reporting tool the host may offer.\n\n",
+          "name": "Blind Hunter"
+        },
+        {
+          "id": "edge-case-hunter",
+          "instruction": "Launch a context-free subagent with this prompt:\n\nRead `{skill-root}/review-prompts/edge-case-hunter.md` completely and follow it as your review instructions.\n\nclaims_file (leave unread until your instructions call for it): {claims_file}\n\nReview content: the unified diff at `{diff_file}`. Read that file — it is the content under review.\n\nDo not invoke any skill, and do not spawn subagents of your own — you are the reviewer. If the instruction file is unreadable, report that exact failure and stop. Return your findings as text in your final message; do not route them through any findings-reporting tool the host may offer.\n\n",
+          "name": "Edge Case Hunter"
+        },
+        {
+          "id": "verification-gap",
+          "instruction": "Launch a context-free subagent with this prompt:\n\nRead `{skill-root}/review-prompts/verification-gap.md` completely and follow it as your review instructions.\n\nReview content: the unified diff at `{diff_file}`. Read that file — it is the content under review.\n\nDo not invoke any skill, and do not spawn subagents of your own — you are the reviewer. If the instruction file is unreadable, report that exact failure and stop. Return your findings as text in your final message; do not route them through any findings-reporting tool the host may offer.\n\n",
+          "name": "Verification Gap Reviewer"
+        },
+        {
+          "id": "intent-alignment",
+          "instruction": "Launch a subagent with this prompt:\n\nYou are an intent-alignment auditor. You have no other context about how this change was produced. Here is the verbatim intent this work started from:\n\n{verbatim_intent}\n\nThe diff is the unified diff at `{diff_file}`. Read that file — it is the change under review.\n\nYour task is strictly descriptive — do not prescribe additional work. Report: (1) the defensible readings of the intent, enumerated; (2) which reading this diff implements; (3) where the readings and the diff diverge — specifically, which surface the intent's expectations live at versus which surface the diff's changes and its tests exercise.\n\nDo not invoke any skill, and do not spawn subagents of your own — you are the reviewer. Return your findings as text in your final message; do not route them through any findings-reporting tool the host may offer.\n\n",
+          "name": "Intent Alignment Auditor",
+          "when": "an intent is available: the spec's intent section, or the user's or conversation's own words on what the change is for"
+        }
+      ]
+    },
+    "skill_root": "C:\\Users\\EliteDesk\\Desktop\\NexaMind AI\\.agents\\skills\\bmad-code-review",
+    "source_sha256": {
+      "references/claims-check.md": "7be5d35dd90a1950addc2062acdf8669026b239117efe1e398da1e8161cfa6f9",
+      "references/deletion-check.md": "0f1f124e4e957147e89164a272b10bedc694ad0d9ad2618c8610ac74ee9cb0da",
+      "review-prompts/edge-case-hunter.md": "5f4572d57340b4c0d155f33454d644a44af101cd7fd02a01591be68a4ebb8b7f",
+      "review-prompts/verification-gap.md": "06f6184d7d94c808970d0146cdc4585dfd66b94a7b7ab2988277fb6fc4208508",
+      "step-01-gather-context.md": "0a1275b910d167f4b20da3e36a0e2ee5244afce5c48342fa8c7ab1ca14f23b1a",
+      "step-02-review.md": "98453e950e4ec176c5985389e8aa87ac9cf754609bae4e0421758af8f3bfa60e",
+      "step-03-triage.md": "d6f0f0362c47b2ebe0d8b4d99215c76bedeb3aec58be91756962616ccbb0a969",
+      "step-04-present.md": "80a8e8ba1c302d7a15bb0cc0478f8ba04711a0fc5c75189d73456deaa8b61235",
+      "workflow.md": "0daf88fb973e6290b6d5524850da08a4c4c98e84d8cf380d484e9a76e45c90fe"
+    }
+  },
+  "outputs": {
+    "references/claims-check.md": "7be5d35dd90a1950addc2062acdf8669026b239117efe1e398da1e8161cfa6f9",
+    "references/deletion-check.md": "0f1f124e4e957147e89164a272b10bedc694ad0d9ad2618c8610ac74ee9cb0da",
+    "review-prompts/edge-case-hunter.md": "5f4572d57340b4c0d155f33454d644a44af101cd7fd02a01591be68a4ebb8b7f",
+    "review-prompts/verification-gap.md": "06f6184d7d94c808970d0146cdc4585dfd66b94a7b7ab2988277fb6fc4208508",
+    "step-01-gather-context.md": "eba3200f6a66d74355dd3afe76fc77b0d594587e8eb58e1857cfc7717423ee4c",
+    "step-02-review.md": "b9b04aa39e941f2271acf1ff68be2f565306a9f77097b4562eae6e52f054653f",
+    "step-03-triage.md": "5580a8dee7c6b3a01f3d7fb33ea4f76bc86fd98d43ecf693acd4432282af62f4",
+    "step-04-present.md": "c0416b85801128cde0572f75fbed2daf0d2c4e2eb1c608d75ac6297e3c308088",
+    "workflow.md": "d743af98d29b26e4ceeaacced43d149098a71dad8ab8d79be79ec5e77b94cfe5"
+  },
+  "project_root": "C:\\Users\\EliteDesk\\Desktop\\NexaMind AI",
+  "project_slug": "nexamind-ai",
+  "root_hash": "ab1633d18ef2",
+  "schema_version": 1,
+  "skill": "bmad-code-review"
+}
