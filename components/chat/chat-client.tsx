@@ -6,13 +6,17 @@ import Link from "next/link";
 
 import {
   CHAT_UI_MESSAGES,
+  answerHasInlineCitations,
+  answerSources,
   citationAriaLabel,
+  citationHref,
+  citationLinkLabel,
   initialChatStreamState,
   reduceChatEvents,
-  segmentAssistantText,
   suggestionLeads,
   type ChatStreamState,
 } from "@/lib/chat/ui";
+import { parseAnswerBlocks, type InlineToken } from "@/lib/text/markdown";
 import type { InitialChatMessage } from "@/lib/chat/conversations";
 import type { ChatEvent } from "@/lib/ai/chat";
 import type { RagCitation } from "@/lib/ai/rag";
@@ -35,6 +39,93 @@ interface ChatClientProps {
   /** Conversation deja ouverte (4.4) : relayee a /api/chat. */
   conversationId?: string;
 }
+
+/**
+ * Une ligne de la reponse : le texte est rendu en markdown-lite (gras,
+ * italique) et les references `[n]` restent des puces cliquables. Les
+ * marqueurs d'emphase ne sont jamais affiches, meme pendant le flux.
+ */
+function AnswerLine({
+  tokens,
+  citations,
+  onCitation,
+}: {
+  tokens: InlineToken[];
+  citations: RagCitation[];
+  onCitation: (index: number) => void;
+}) {
+  return (
+    <>
+      {tokens.map((token, i) => {
+        if (token.citationIndex !== null) {
+          const index = token.citationIndex;
+          return (
+            <button
+              key={i}
+              type="button"
+              className={styles.citationChip}
+              aria-label={citationAriaLabel(index, citations[index])}
+              onClick={() => onCitation(index)}
+            >
+              [{token.text}]
+            </button>
+          );
+        }
+        if (token.strong) return <strong key={i}>{token.text}</strong>;
+        if (token.emphasis) return <em key={i}>{token.text}</em>;
+        return <span key={i}>{token.text}</span>;
+      })}
+    </>
+  );
+}
+
+/** Structure de la reponse : paragraphes, titres et listes du markdown-lite. */
+function AnswerBody({
+  text,
+  citations,
+  onCitation,
+}: {
+  text: string;
+  citations: RagCitation[];
+  onCitation: (index: number) => void;
+}) {
+  const blocks = parseAnswerBlocks(text, citations.length);
+  return (
+    <div className={styles.answer}>
+      {blocks.map((block, blockIndex) => {
+        if (block.kind === "heading") {
+          return (
+            <p key={blockIndex} className={styles.answerHeading}>
+              {block.items.map((tokens, i) => (
+                <AnswerLine key={i} tokens={tokens} citations={citations} onCitation={onCitation} />
+              ))}
+            </p>
+          );
+        }
+        if (block.kind === "bullets" || block.kind === "numbers") {
+          const List = block.kind === "bullets" ? "ul" : "ol";
+          return (
+            <List key={blockIndex} className={styles.answerList} role="list">
+              {block.items.map((tokens, i) => (
+                <li key={i} className={styles.answerItem}>
+                  <AnswerLine tokens={tokens} citations={citations} onCitation={onCitation} />
+                </li>
+              ))}
+            </List>
+          );
+        }
+        return (
+          <p key={blockIndex} className={styles.answerParagraph}>
+            {block.items.map((tokens, i) => (
+              <AnswerLine key={i} tokens={tokens} citations={citations} onCitation={onCitation} />
+            ))}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 
 let messageSeq = 0;
 function nextId(): string {
@@ -265,6 +356,12 @@ export default function ChatClient({
           const stream = message.stream;
           const abstained = stream?.meta?.abstained ?? false;
           const text = stream?.text ?? "";
+          const citations = stream?.meta?.citations ?? [];
+          const sources = answerSources(stream?.meta ?? null);
+          const openSource = (index: number) => {
+            const citation = citations[index];
+            if (citation) setOpenCitation({ citation, asLead: false });
+          };
 
           return (
             <div key={message.id} className={`${styles.bubbleRow} ${styles.bubbleRowAssistant}`}>
@@ -285,30 +382,42 @@ export default function ChatClient({
                 ) : null}
 
                 {text ? (
-                  <span className={abstained ? styles.bubbleAssistantAbstention : undefined}>
-                    {segmentAssistantText(text, stream?.meta?.citations.length ?? 0).map(
-                      (segment, i) =>
-                        segment.citationIndex !== null ? (
+                  <div className={abstained ? styles.bubbleAssistantAbstention : undefined}>
+                    <AnswerBody text={text} citations={citations} onCitation={openSource} />
+                  </div>
+                ) : null}
+
+                {/* FR-11 : la reference reste cliquable meme lorsque le modele
+                    n'ecrit aucun `[n]` dans sa reponse. Sans ce bloc, la
+                    citation dependait de la seule humeur du generateur : le
+                    meme questionnaire reussissait cote admin et echouait cote
+                    collaborateur. */}
+                {!abstained && sources.length > 0 ? (
+                  <div className={styles.sourcesBox}>
+                    <p className={styles.sourcesTitle}>{CHAT_UI_MESSAGES.sourcesTitle}</p>
+                    {answerHasInlineCitations(text, citations.length) ? null : (
+                      <p className={styles.sourcesNote}>
+                        {CHAT_UI_MESSAGES.sourcesWithoutMarker}
+                      </p>
+                    )}
+                    <ol className={styles.sourcesList} role="list">
+                      {sources.map(({ index, citation }) => (
+                        <li key={citation.sourceId} className={styles.sourcesItem}>
                           <button
-                            key={i}
                             type="button"
                             className={styles.citationChip}
-                            aria-label={citationAriaLabel(
-                              segment.citationIndex,
-                              stream?.meta?.citations[segment.citationIndex],
-                            )}
-                            onClick={() => {
-                              const citation = stream?.meta?.citations[segment.citationIndex ?? -1];
-                              if (citation) setOpenCitation({ citation, asLead: false });
-                            }}
+                            aria-label={citationAriaLabel(index, citation)}
+                            onClick={() => openSource(index)}
                           >
-                            [{segment.text}]
-                          </button>
-                        ) : (
-                          <span key={i}>{segment.text}</span>
-                        ),
-                    )}
-                  </span>
+                            [{index + 1}]
+                          </button>{" "}
+                          <Link className={styles.sourcesLink} href={citationHref(citation)}>
+                            {citation.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
                 ) : null}
 
                 {stream?.error ? (
@@ -426,15 +535,17 @@ export default function ChatClient({
             {/* 6.1 (FR-11) : la citation mene a la ressource AU PASSAGE
                 utilise. Le tiroir reste intact (extrait immediat) : c'est un
                 second acces, decision de l'utilisateur. */}
-            {openCitation.citation.chunkId ? (
-              <Link
-                className={styles.drawerLink}
-                href={`/resources/${openCitation.citation.sourceId}?chunk=${openCitation.citation.chunkId}`}
-                onClick={() => setOpenCitation(null)}
-              >
-                Ouvrir dans le document
-              </Link>
-            ) : null}
+            {/* 6.1 (FR-11) : la citation mene a la ressource AU PASSAGE
+                utilise. Sans morceau identifie (resultat purement textuel),
+                le lien mene quand meme au document : une reference qui ne
+                mene nulle part n'est pas une reference. */}
+            <Link
+              className={styles.drawerLink}
+              href={citationHref(openCitation.citation)}
+              onClick={() => setOpenCitation(null)}
+            >
+              {citationLinkLabel(openCitation.citation)}
+            </Link>
           </aside>
         </>
       ) : null}

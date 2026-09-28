@@ -323,3 +323,77 @@
   background: var(--danger-subtle);
   border: 1px solid var(--danger-border);
 }
+
+/* --- Reponse rendue en markdown-lite ---------------------------------
+   La bulle n'est plus du texte brut : paragraphes, listes, titres et gras
+   sont rendus (lib/text/markdown.ts). `white-space` repasse en normal car
+   `.bubble` est en pre-wrap : les sauts de ligne deviennent des decisions du
+   rendu, plus des restes du texte brut du modele. */
+.answer {
+  white-space: normal;
+}
+
+.answerParagraph + .answerParagraph,
+.answerHeading,
+.answerList {
+  margin-top: var(--space-sm);
+}
+
+.answerHeading {
+  font-weight: var(--fw-semibold);
+}
+
+.answerList {
+  padding-left: 1.25rem;
+}
+
+.answerItem + .answerItem {
+  margin-top: 0.25rem;
+}
+
+/* --- Bloc de sources (FR-11) ------------------------------------------
+   Une reponse fondee reste rattachable a ses documents, que le modele ait
+   ecrit des [n] dans son texte ou non. */
+.sourcesBox {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
+.sourcesTitle {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sourcesNote {
+  margin-top: 0.25rem;
+  font-size: var(--fs-xs);
+  color: var(--warning-text);
+}
+
+.sourcesList {
+  margin-top: 0.25rem;
+  list-style: none;
+}
+
+.sourcesItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: var(--fs-sm);
+}
+
+.sourcesLink {
+  color: var(--accent-text);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.sourcesLink:hover,
+.sourcesLink:focus-visible {
+  color: var(--primary-hover);
+}
+

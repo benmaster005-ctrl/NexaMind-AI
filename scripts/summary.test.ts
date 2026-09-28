@@ -261,4 +261,15 @@ describe("action serveur — garanties structurelles (audit statique)", () => {
     ]);
     assert.deepEqual(parseBullets("- `65 EUR` par heure"), ["65 EUR par heure"]);
   });
+
+  it("emphase jamais fermee : aucun asterisque ne survit a l'ecran", () => {
+    // Le modele emit parfois « **Important : ... » sans fermant. L'ancienne
+    // sanitisation laissait les asterisques bruts dans la puce.
+    assert.deepEqual(parseBullets("- **Important prevoir un badge"), [
+      "Important prevoir un badge",
+    ]);
+    assert.deepEqual(parseBullets("- __Periode d'essai__ : 3 mois"), [
+      "Periode d'essai : 3 mois",
+    ]);
+  });
 });

@@ -158,13 +158,14 @@ describe("audits de securite et d'integration (statique)", () => {
     );
   });
 
-  it("le tiroir de citation mene au passage cite (FR-11)", () => {
+  it("le tiroir de citation mene au passage cite, et au document sinon (FR-11)", () => {
     const chat = read("components/chat/chat-client.tsx");
-    assert.match(
-      chat,
-      /\/resources\/\$\{openCitation\.citation\.sourceId\}\?chunk=\$\{openCitation\.citation\.chunkId\}/,
-    );
-    assert.match(chat, /openCitation\.citation\.chunkId \? \(/);
+    const ui = read("lib/chat/ui.ts");
+    // Le lien n'est plus conditionne au chunkId : une citation sans morceau
+    // doit quand meme mener au document.
+    assert.match(chat, /href=\{citationHref\(openCitation\.citation\)\}/);
+    assert.match(ui, /const base = `\/resources\/\$\{citation\.sourceId\}`;/);
+    assert.match(ui, /citation\.chunkId \? `\$\{base\}\?chunk=\$\{citation\.chunkId\}` : base/);
   });
 
   it("le defilement vers l'ancre est le seul JavaScript de la fiche", () => {

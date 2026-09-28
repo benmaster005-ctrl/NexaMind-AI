@@ -12,6 +12,8 @@
  * Aucun stockage : le resume n'entre ni dans `resources` ni dans l'index.
  */
 
+import { stripMarkdownInline } from "../text/markdown.ts";
+
 /** Statut de ressource eligible a la synthese (contrainte CHECK en base). */
 export const READY_STATUS = "Prête";
 
@@ -54,6 +56,7 @@ export const SUMMARY_SYSTEM = [
   `- Ne reformule AUCUN fait, chiffre, date ou nom qui n'apparaît pas dans le contenu.`,
   `- Produis entre ${MIN_BULLETS} et ${MAX_BULLETS} puces, une ligne par puce.`,
   `- Chaque ligne commence par « - » et tient en une phrase (${MAX_BULLET_CHARS} caractères maximum).`,
+  "Écris en texte simple : aucun marqueur markdown (ni ** pour le gras, ni #, ni backticks).",
   `- N'ajoute aucun titre, aucun préambule, aucun commentaire final.`,
 ].join("\n");
 
@@ -107,15 +110,13 @@ export function buildSummaryPrompt(source: SummarySource): string {
 const BULLET_RE = /^\s*(?:[-*•–—]|\d+[.)])\s+(.*)$/;
 
 /**
- * Rend une puce en texte brut : retire l'emphase markdown inline
- * (`**gras**`, `` `code` ``) puis les marqueurs de bord. L'UI affiche la
- * puce telle quelle, sans rendu markdown.
+ * Rend une puce en texte brut : le markdown-lite retire l'emphase inline
+ * (`**gras**`, `` `code` ``, titre) ; les marqueurs isoles (asterisque
+ * orphelin, `~~` jamais ferme) sont rognes aux bords. L'UI affiche la puce
+ * telle quelle, sans rendu markdown.
  */
 function cleanBullet(text: string): string {
-  return text
-    .replace(/^#+\s*/, "")
-    .replace(/\*\*(.+?)\*\*/g, "$1")
-    .replace(/`([^`]+)`/g, "$1")
+  return stripMarkdownInline(text)
     .replace(/^[*_~\s]+/, "")
     .replace(/[*_`~\s]+$/, "")
     .trim();

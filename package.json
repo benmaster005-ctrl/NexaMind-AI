@@ -23,6 +23,7 @@
     "test:rag": "node --test --experimental-strip-types scripts/rag.test.ts",
     "test:chat": "node --test --experimental-strip-types scripts/chat.test.ts",
     "test:chat-ui": "node --test --experimental-strip-types scripts/chat-ui.test.ts",
+    "test:markdown": "node --test --experimental-strip-types scripts/markdown-lite.test.ts",
     "test:conversation": "node --test --experimental-strip-types scripts/conversation.test.ts",
     "test:summary": "node --test --experimental-strip-types scripts/summary.test.ts",
     "test:history": "node --test --experimental-strip-types scripts/history.test.ts",

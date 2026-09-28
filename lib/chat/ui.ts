@@ -2,10 +2,13 @@
  * Helpers purs de l'interface de chat (story 4.3, FR-10/FR-11/FR-12).
  *
  * Module sans dependance (ni Next, ni React, ni Supabase) pour rester
- * testable sans reseau via `npm run test:chat-ui`.
+ * testable sans reseau via `npm run test:chat-ui`. Le rendu markdown-lite des
+ * reponses vient de `lib/text/markdown.ts` (voir egalement
+ * `npm run test:markdown`).
  */
 import type { ChatEvent } from "../ai/chat.ts";
 import type { RagCitation } from "../ai/rag.ts";
+import { tokenizeInline } from "../text/markdown.ts";
 
 export const CHAT_UI_MESSAGES = {
   assistantGreeting:
@@ -19,6 +22,12 @@ export const CHAT_UI_MESSAGES = {
   newChat: "Nouvelle discussion",
   sourceDrawerTitle: "Source citée",
   emptyInput: "Écrivez une question avant d'envoyer.",
+  /** Bloc de sources (FR-11) : la reference reste accessible meme sans [n] dans le texte. */
+  sourcesTitle: "Sources",
+  sourcesWithoutMarker:
+    "La réponse ne renvoie pas à ses références dans le texte : les documents utilisés sont listés ici.",
+  drawerOpenPassage: "Ouvrir dans le document",
+  drawerOpenDocument: "Ouvrir le document",
 } as const;
 
 export interface TextSegment {
@@ -31,45 +40,67 @@ export interface TextSegment {
  * Decoupe un texte assistant en segments texte / puces `[n]`.
  * Une puce n'est creee que si 1 <= n <= citationCount (les marqueurs
  * hors bornes restent en texte : pas de puce fantome, pas de crash).
+ *
+ * Le decoupage inline est celui du rendu markdown-lite : les marqueurs
+ * d'emphase (`**gras**`, `` `code` ``) sont retires au passage, jamais
+ * affiches.
  */
 export function segmentAssistantText(
   text: string,
   citationCount: number,
 ): TextSegment[] {
   const source = text ?? "";
+  if (!source) return [];
   const segments: TextSegment[] = [];
-  if (!source) return segments;
-  const maxIndex = Math.max(0, Math.floor(citationCount));
-  let cursor = 0;
-  for (;;) {
-    const start = source.indexOf("[", cursor);
-    if (start < 0) break;
-    const end = source.indexOf("]", start + 1);
-    if (end < 0) break;
-    const digits = source.slice(start + 1, end);
-    if (!/^\d{1,2}$/.test(digits)) {
-      // Pas un marqueur de citation : on avance d'un caractere (bracket literal).
-      if (start > cursor) segments.push({ text: source.slice(cursor, start), citationIndex: null });
-      segments.push({ text: "[", citationIndex: null });
-      cursor = start + 1;
+  for (const token of tokenizeInline(source, citationCount)) {
+    const last = segments[segments.length - 1];
+    if (token.citationIndex === null && last && last.citationIndex === null) {
+      last.text += token.text;
       continue;
     }
-    const n = Number(digits);
-    if (n < 1 || n > maxIndex) {
-      if (start > cursor) segments.push({ text: source.slice(cursor, start), citationIndex: null });
-      segments.push({ text: source.slice(start, end + 1), citationIndex: null });
-      cursor = end + 1;
-      continue;
-    }
-    if (start > cursor) segments.push({ text: source.slice(cursor, start), citationIndex: null });
-    segments.push({ text: digits, citationIndex: n - 1 });
-    cursor = end + 1;
-  }
-  if (cursor < source.length) {
-    segments.push({ text: source.slice(cursor), citationIndex: null });
+    segments.push({ text: token.text, citationIndex: token.citationIndex });
   }
   if (segments.length === 0) return [{ text: source, citationIndex: null }];
   return segments;
+}
+
+/**
+ * La reponse porte-t-elle au moins une puce `[n]` cliquable ? Le modele peut
+ * produire une reponse fondee sans marqueur : le bloc de sources prend le
+ * relais, mais le libelle change pour rester honnete (FR-11).
+ */
+export function answerHasInlineCitations(text: string, citationCount: number): boolean {
+  return segmentAssistantText(text, citationCount).some((s) => s.citationIndex !== null);
+}
+
+/**
+ * Sources a afficher sous la reponse, dans l'ordre de numerotation du prompt
+ * (les puces `[n]` du texte designent ces memes indices). En abstention, le
+ * bloc est vide : ce sont les « pistes » qui prennent le relais.
+ */
+export function answerSources(
+  meta: ChatStreamState["meta"],
+): Array<{ index: number; citation: RagCitation }> {
+  if (!meta || meta.abstained) return [];
+  return meta.citations.map((citation, index) => ({ index, citation }));
+}
+
+/**
+ * Lien d'une citation vers la fiche du document (story 6.1). L'ancre
+ * `?chunk=` n'est ajoutee que si le morceau est connu : un resultat purement
+ * textuel (titre/categories) n'a pas de chunk, mais doit quand meme mener au
+ * document — sinon la reference ne serait pas cliquable.
+ */
+export function citationHref(citation: RagCitation): string {
+  const base = `/resources/${citation.sourceId}`;
+  return citation.chunkId ? `${base}?chunk=${citation.chunkId}` : base;
+}
+
+/** Libelle du lien de tiroir : ancre vers le passage, ou document entier. */
+export function citationLinkLabel(citation: RagCitation): string {
+  return citation.chunkId
+    ? CHAT_UI_MESSAGES.drawerOpenPassage
+    : CHAT_UI_MESSAGES.drawerOpenDocument;
 }
 
 /** Etat client deduit du flux NDJSON de /api/chat. */

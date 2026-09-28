@@ -12,7 +12,11 @@ import { fileURLToPath } from "node:url";
 
 import {
   CHAT_UI_MESSAGES,
+  answerHasInlineCitations,
+  answerSources,
   citationAriaLabel,
+  citationHref,
+  citationLinkLabel,
   initialChatStreamState,
   reduceChatEvents,
   segmentAssistantText,
@@ -172,6 +176,73 @@ describe("citationAriaLabel (EXPERIENCE §4)", () => {
       "Source 1 : Politique de congés payés",
     );
   });
+
+
+describe("references cliquables : le bloc de sources (FR-11)", () => {
+  const META = { abstained: false, citations: [CITE], suggestions: [] };
+
+  it("answerHasInlineCitations détecte le [1] écrit par le modèle", () => {
+    assert.equal(answerHasInlineCitations("Vous avez 25 jours [1].", 1), true);
+  });
+
+  it("réponse fondée sans marqueur : faux, le bloc de sources prend le relais", () => {
+    // C'est le cas « collaborateur » : la reponse est juste, mais aucune
+    // reference n'a ete ecrite dans le texte. Sans bloc de sources, l'ecran
+    // n'offrait plus aucun acces au document.
+    assert.equal(answerHasInlineCitations("Vous avez 25 jours.", 1), false);
+    assert.equal(answerHasInlineCitations("[9] hors borne", 1), false);
+  });
+
+  it("answerSources numerote comme le prompt ([1] = premiere citation)", () => {
+    const sources = answerSources(META);
+    assert.deepEqual(sources.map((s) => s.index), [0]);
+    assert.equal(sources[0].citation.title, "Politique de congés payés");
+  });
+
+  it("abstention et meta absente : aucune source affichee", () => {
+    assert.deepEqual(answerSources({ ...META, abstained: true }), []);
+    assert.deepEqual(answerSources(null), []);
+  });
+
+  it("citationHref mene au passage quand le morceau est connu", () => {
+    assert.equal(citationHref(CITE), "/resources/r1?chunk=c1");
+  });
+
+  it("sans morceau (résultat textuel), le lien mène quand même au document", () => {
+    const textOnly = { ...CITE, chunkId: null };
+    assert.equal(citationHref(textOnly), "/resources/r1");
+    assert.equal(citationLinkLabel(CITE), CHAT_UI_MESSAGES.drawerOpenPassage);
+    assert.equal(citationLinkLabel(textOnly), CHAT_UI_MESSAGES.drawerOpenDocument);
+  });
+
+  it("segmentAssistantText ne rend jamais les marqueurs de gras", () => {
+    const segments = segmentAssistantText("Vous avez **25 jours** [1].", 1);
+    const rendered = segments
+      .map((s) => (s.citationIndex === null ? s.text : `[${s.text}]`))
+      .join("");
+    assert.equal(rendered, "Vous avez 25 jours [1].");
+    assert.ok(segments.every((s) => !s.text.includes("*")));
+  });
+});
+
+describe("chat-client : rendu markdown-lite et sources", () => {
+  it("rend la réponse via le parseur markdown-lite", () => {
+    assert.match(chatClientSrc, /parseAnswerBlocks\(/);
+    assert.match(chatClientSrc, /styles\.answerParagraph/);
+    assert.match(chatClientSrc, /styles\.answerList/);
+  });
+
+  it("affiche un bloc de sources sous la réponse fondée (jamais en abstention)", () => {
+    assert.match(chatClientSrc, /answerSources\(stream\?\.meta/);
+    assert.match(chatClientSrc, /!abstained && sources\.length > 0/);
+    assert.match(chatClientSrc, /styles\.sourcesBox/);
+  });
+
+  it("le lien du tiroir n'est plus conditionné au chunkId", () => {
+    assert.match(chatClientSrc, /href=\{citationHref\(openCitation\.citation\)\}/);
+    assert.doesNotMatch(chatClientSrc, /openCitation\.citation\.chunkId \?/);
+  });
+});
 
   it("sans titre : numero seul", () => {
     assert.equal(citationAriaLabel(2), "Source 3");
