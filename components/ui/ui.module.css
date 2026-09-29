@@ -230,7 +230,9 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  min-height: 36px;
+  /* Cible tactile >= 44px (AC story 7.4) : libelle seul, donc hauteur
+     garantie par le style, pas par le contenu. */
+  min-height: 44px;
   padding: 0 var(--space-md);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
@@ -269,10 +271,6 @@
     justify-content: center;
     overflow-x: visible;
     flex: 1 1 auto;
-  }
-
-  .topItem {
-    min-height: 40px;
   }
 }
 

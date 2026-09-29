@@ -37,27 +37,6 @@
   gap: var(--space-xl);
 }
 
-/* --- Titre / explication -------------------------------------------------- */
-.intro {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.title {
-  margin: 0;
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-medium);
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.subtitle {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
 /* --- Marque (en-tete) ---------------------------------------------------- */
 .brand {
   display: inline-flex;
@@ -116,8 +95,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  /* Cible tactile >= 44px (AC story 7.4) : la deconnexion reste un geste
+     unique, donc atteignable au doigt comme au clavier. */
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   color: var(--text-muted);
   border: 1px solid var(--border);
@@ -190,6 +171,9 @@
 .actionCard {
   display: flex;
   flex-direction: column;
+  /* Plancher de cible tactile (AC story 7.4) : la carte depasse largement
+     44px de haut, le minimum est exprime pour rester auditable. */
+  min-height: 44px;
   padding: var(--space-lg);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -467,8 +451,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   margin-right: var(--space-xs);
   color: var(--accent-text);

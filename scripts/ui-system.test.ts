@@ -402,7 +402,7 @@ describe("tableau de bord refonde (2026-09-29)", () => {
 
   it("structure attendue : titre, grande barre, 4 actions, 3 colonnes", () => {
     const order = [
-      home.indexOf("styles.title"),
+      home.indexOf("<PageHeader"),
       home.indexOf("styles.searchBar"),
       home.indexOf("styles.actions"),
       home.indexOf("styles.columns"),
@@ -641,6 +641,8 @@ describe("finitions du socle (story 7.2)", () => {
 describe("story 7.3 : en-tête et navigation harmonisés", () => {
   /** Les écrans qui rendent leur h1 via le composant partagé. */
   const HEADER_SCREENS = [
+    // Bandeau repris en story 7.4 : le tableau de bord rejoint l'en-tête unifié.
+    "app/page.tsx",
     "app/search/page.tsx",
     "app/chat/page.tsx",
     "app/chat/[id]/page.tsx",
@@ -725,6 +727,95 @@ describe("story 7.3 : en-tête et navigation harmonisés", () => {
       read("app/(dashboard)/resources/[id]/page.tsx"),
       /\{resource[.]category\} · \{resource[.]status\}/,
     );
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Story 7.4 : tableau de bord finalisé — états, accessibilité, densité.
+// ---------------------------------------------------------------------------
+
+describe("story 7.4 : finalisation du tableau de bord", () => {
+  const home = read("app/page.tsx");
+  const homeCss = read("components/dashboard/dashboard-home.module.css");
+  const ui = read("components/ui/ui.module.css");
+
+  /** Corps d'une règle simple (ces modules n'imbriquent jamais d'accolade). */
+  const block = (css, selector) =>
+    new RegExp(`[.]${selector}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? "";
+
+  it("bandeau : PageHeader rend le h1, les styles locaux ont disparu", () => {
+    assert.equal(
+      (home.match(/<PageHeader\b/g) ?? []).length,
+      1,
+      "bandeau rendu exactement une fois",
+    );
+    assert.ok(!/<h1[\s>]/.test(home), "h1 rendu hors de PageHeader");
+    for (const orphan of ["intro", "title", "subtitle"]) {
+      assert.ok(
+        !new RegExp(`[.]${orphan}\\s*\\{`).test(homeCss),
+        `règle .${orphan} orpheline après le basculement`,
+      );
+    }
+  });
+
+  it("un échec de lecture dégrade sa colonne, jamais la page", () => {
+    assert.match(home, /let documentsFailed = false;/);
+    assert.match(home, /let conversationsFailed = false;/);
+    assert.match(home, /documentsFailed = true;/);
+    assert.match(home, /conversationsFailed = true;/);
+    // Le signal vit dans la colonne concernée (role=status), pas au bas de page.
+    assert.equal(
+      (home.match(/styles[.]degraded/g) ?? []).length,
+      2,
+      "un message dégradé par colonne lisible",
+    );
+    assert.ok(
+      !home.includes("Certaines données sont temporairement indisponibles"),
+      "bannière de dégradation globale résiduelle",
+    );
+    // Chaque colonne conserve son état vide explicite (aucune donnée factice).
+    assert.equal((home.match(/styles[.]empty/g) ?? []).length, 3, "un état vide par colonne");
+  });
+
+  it("aucun compteur inventé : le total vient de la base, l'échec le masque", () => {
+    assert.match(home, /[.]select\("id", \{ count: "exact", head: true \}\)/);
+    assert.match(home, /readyCount === null \? null/);
+    assert.ok(!home.includes("degraded = true"), "signal global résiduel");
+  });
+
+  it("les deux formulaires restent natifs : GET, bouton, sans JavaScript", () => {
+    // Barre de recherche : GET vers /search, soumis par bouton (donc par Entrée).
+    assert.match(home, /action="\/search"/);
+    assert.match(home, /type="submit"/);
+    // Composeur : la question part en GET vers /chat, sans nouvel appel réseau.
+    assert.match(home, /action="\/chat"/);
+    assert.match(home, /name="q"/);
+    assert.ok(!home.includes('"use client"'), "la page d'accueil doit rester un Server Component");
+    assert.ok(!/onSubmit|onClick/.test(home), "gestionnaire client sur un formulaire natif");
+    assert.ok(!/fetch\(/.test(home), "appel réseau ajouté au tableau de bord");
+  });
+
+  it("cibles tactiles >= 44px : onglets, raccourcis, zone de compte", () => {
+    // Onglets de l'en-tête horizontal (socle partagé).
+    assert.match(block(ui, "topItem"), /min-height:\s*44px;/, "onglet sous la cible tactile");
+    // Raccourcis : les quatre cartes d'action (décision produit G-3).
+    assert.match(block(homeCss, "actionCard"), /min-height:\s*44px;/, "raccourci sous 44px");
+    // Zone de compte : déconnexion directe.
+    const signOut = block(homeCss, "accountSignOut");
+    assert.match(signOut, /width:\s*44px;/, "deconnexion sous 44px en largeur");
+    assert.match(signOut, /height:\s*44px;/, "deconnexion sous 44px en hauteur");
+    // Contrôles de saisie de la page : composeur et bouton de recherche.
+    assert.match(block(homeCss, "askSubmit"), /width:\s*44px;/, "envoi de question sous 44px");
+    assert.match(block(ui, "button"), /min-height:\s*44px;/, "recette du socle sous 44px");
+  });
+
+  it("ordre de tabulation naturel, sans raccourci positif", () => {
+    assert.ok(!/tabIndex=\{\s*[1-9]/.test(home), "tabIndex positif : ordre artificiel");
+    assert.ok(!/tabIndex="[1-9]/.test(home), "tabIndex positif : ordre artificiel");
+    // Les libellés de formulaire restent rattachés à leurs champs.
+    assert.match(home, /htmlFor="dashboard-search"/);
+    assert.match(home, /htmlFor="dashboard-question"/);
   });
 });
 

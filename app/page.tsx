@@ -15,6 +15,7 @@ import AppNav from "@/components/ui/app-nav";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
+import { PageHeader } from "@/components/ui/page-header";
 import { READY_STATUS } from "@/lib/ai/summary";
 import Brand from "@/components/dashboard/brand";
 import UserBlock from "@/components/dashboard/user-block";
@@ -103,7 +104,10 @@ export default async function Home() {
   let documents: ResourceRow[] = [];
   let conversations: ConversationRow[] = [];
   let searches: SearchHistoryItem[] = [];
-  let degraded = false;
+  // Degradation par colonne (AC story 7.4) : un echec de lecture touche la
+  // colonne concernee, jamais la page entiere.
+  let documentsFailed = false;
+  let conversationsFailed = false;
 
   try {
     const { count, error } = await supabase
@@ -114,7 +118,7 @@ export default async function Home() {
     if (error) throw error;
     readyCount = count ?? 0;
   } catch {
-    degraded = true;
+    // AC compteur : en echec, le chiffre disparaît au lieu d'afficher zero.
   }
 
   try {
@@ -126,7 +130,7 @@ export default async function Home() {
     if (error) throw error;
     documents = (data ?? []) as ResourceRow[];
   } catch {
-    degraded = true;
+    documentsFailed = true;
   }
 
   try {
@@ -138,7 +142,7 @@ export default async function Home() {
     if (error) throw error;
     conversations = (data ?? []) as ConversationRow[];
   } catch {
-    degraded = true;
+    conversationsFailed = true;
   }
 
   try {
@@ -162,15 +166,10 @@ export default async function Home() {
       />
 
       <main className={styles.inner}>
-        <section className={styles.intro}>
-          <h1 className={styles.title}>
-            Vos connaissances d’entreprise, à portée de main
-          </h1>
-          <p className={styles.subtitle}>
-            Retrouvez rapidement une information, consultez vos documents ou posez
-            une question.
-          </p>
-        </section>
+        <PageHeader
+          title="Vos connaissances d’entreprise, à portée de main"
+          description="Retrouvez rapidement une information, consultez vos documents ou posez une question."
+        />
 
         {/* Recherche : GET vers /search?q=... — le rejeu existe deja, aucun
             etat client, aucune nouvelle API. */}
@@ -225,7 +224,11 @@ export default async function Home() {
                 Voir tout
               </Link>
             </header>
-            {documents.length > 0 ? (
+            {documentsFailed ? (
+              <p className={styles.degraded} role="status">
+                Documents momentanément indisponibles — réessayez plus tard.
+              </p>
+            ) : documents.length > 0 ? (
               <ul className={styles.list}>
                 {documents.map((doc) => {
                   const type = documentTypeLabel(doc.storage_path);
@@ -333,7 +336,11 @@ export default async function Home() {
               </Link>
             </div>
 
-            {conversations.length > 0 ? (
+            {conversationsFailed ? (
+              <p className={styles.degraded} role="status">
+                Conversations momentanément indisponibles — réessayez plus tard.
+              </p>
+            ) : conversations.length > 0 ? (
               <ul className={styles.list}>
                 {conversations.map((conv) => (
                   <li key={conv.id}>
@@ -359,12 +366,6 @@ export default async function Home() {
           </section>
         </div>
 
-        {degraded ? (
-          <p className={styles.degraded} role="status">
-            Certaines données sont temporairement indisponibles — la recherche et
-            les actions restent accessibles.
-          </p>
-        ) : null}
       </main>
     </div>
   );

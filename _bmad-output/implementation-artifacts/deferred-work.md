@@ -53,3 +53,8 @@ realise depuis (elle n'est pas supprimee : elle explique pourquoi le plan a chan
   source_plan: mvp-validation-report.md
   summary: Rejouer la validation live (56/56 et 14/14) apres la suppression des roles et la refonte de l'interface.
   evidence: `mvp-validation-report.md` date du 2026-09-27, soit **avant** la suppression de la gestion des roles (commit `376d3b2`) et avant la refonte du tableau de bord (commit `c1f4172`). Ses constats fonctionnels restent valables, mais sa description de l'ecran d'accueil et sa reference a `/admin/resources` ne correspondent plus au code. `npm run validate:mvp-live` et `npm run validate:chat-live` exigent un serveur de developpement et un compte reel : revalidation planifiee dans la story 7.10. L'addendum du 2026-09-29 dans le rapport consigne l'ecart.
+
+- status: open
+  source_plan: plan-7-4-tableau-de-bord.md
+  summary: Cibles tactiles residuelles sous 44 px sur le tableau de bord (liens « Voir tout »).
+  evidence: L'AC « cibles >= 44 px » de la story 7.4 nomme trois cibles — onglets (`.topItem`), raccourcis (`.actionCard`) et zone de compte (`.accountSignOut`) — toutes portees a 44 px, plus l'envoi du composeur (`.askSubmit`). Les liens `.seeAll` (« Voir tout » des trois panneaux et du sous-titre conversations) restent des textes lies d'une vingtaine de pixels : les porter a 44 px agrandirait les entetes de panneau, un changement de densite non demande par le ticket (decision consignee dans le plan). A traiter au gate 7.10 (DESIGN.md 6 : zones de clic tactile >= 44 px sur mobile).
