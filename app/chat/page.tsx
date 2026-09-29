@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
-import { createClient } from "@/lib/supabase/server";
-import { normalizeUserRole, getNavItems } from "@/lib/dashboard/helpers";
+import { getNavItems } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
 import ChatClient from "@/components/chat/chat-client";
@@ -18,17 +17,7 @@ export const metadata: Metadata = {
  * est cote client (streaming NDJSON vers /api/chat).
  */
 export default async function ChatPage() {
-  let navRole = normalizeUserRole(null);
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    navRole = normalizeUserRole(user?.app_metadata?.["role"]);
-  } catch {
-    navRole = normalizeUserRole(null);
-  }
-  const navItems = getNavItems(navRole);
+  const navItems = getNavItems();
 
   return (
     <div className={dashboardStyles.page}>

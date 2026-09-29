@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { normalizeUserRole, getNavItems } from "@/lib/dashboard/helpers";
+import { getNavItems } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
 import ChatClient from "@/components/chat/chat-client";
@@ -25,16 +25,11 @@ export default async function ChatConversationPage({
 }) {
   const { id } = await params;
 
-  let navRole = normalizeUserRole(null);
   let initialMessages: ReturnType<typeof rowsToInitialMessages> = [];
   let found = false;
 
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    navRole = normalizeUserRole(user?.app_metadata?.["role"]);
 
     const { data: conversation } = await supabase
       .from("conversations")
@@ -58,7 +53,7 @@ export default async function ChatConversationPage({
   // Etrangere, inconnue ou requete en echec : redirection (FR-13 / R-7).
   if (!found) redirect("/chat");
 
-  const navItems = getNavItems(navRole);
+  const navItems = getNavItems();
 
   return (
     <div className={dashboardStyles.page}>

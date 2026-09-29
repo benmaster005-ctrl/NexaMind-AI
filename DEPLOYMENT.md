@@ -1,4 +1,4 @@
-# Déploiement — NexaMind AI
+﻿# Déploiement — NexaMind AI
 
 Guide de mise sur Vercel (Projet : `Bmo26/nexamind-ai`). Écrit le 2026-09-28 après
 vérification de la documentation Vercel/Next 16 et du code du dépôt.
@@ -24,23 +24,26 @@ géré par le runtime Next de Vercel, ne pas forcer `next start`).
    (bucket privé `documents`) → `0003_ingestion_chunks` →
    `0004_embeddings_vector_storage` → `0005_match_chunks` →
    `0005_resource_management_deletion` → `0006_message_meta` → `0007_search_history`
-   → `0008_admin_only_writes`.
+   → `0008_admin_only_writes` → `0009_open_writes_no_roles`.
 2. Vérifier que l'extension `vector` (pgvector) est installée (schéma `extensions`,
    cf. migration 0004).
-3. **Promouvoir le premier administrateur** — l'inscription attribue toujours
-   `collaborateur` (trigger `on_auth_user_created`, migration 0008) et le dépôt de
-   documents exige `app_metadata.role = 'admin'` :
-
-   ```sql
-   update auth.users
-      set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
-                           || jsonb_build_object('role', 'admin')
-    where email = 'prenom.nom@nexaworks.example';
-   ```
-
-   L'utilisateur doit **se reconnecter** (le rôle voyage dans le JWT).
+3. **Aucun administrateur à promouvoir** : la gestion des rôles a été supprimée
+   (2026-09-29). La migration `0009_open_writes_no_roles` retire la fonction
+   `is_admin()`, le trigger d'inscription et la donnée de rôle dans
+   `app_metadata` / `user_metadata`, puis rouvre l'écriture documentaire
+   (`resources`, `document_chunks`, bucket `documents`) à **tout utilisateur
+   authentifié**. L'accès au dépôt `/documents` ne demande qu'une session.
 4. Côté Auth Supabase : activer ou non « Confirm email » selon la politique choisie,
    et configurer un domaine d'envoi SMTP pour les e-mails de confirmation.
+
+> ⚠ Conséquence assumée de l'ouverture des écritures : avec la clé publique, un
+> utilisateur authentifié peut injecter des morceaux arbitraires dans
+> `document_chunks` (empoisonnement du corpus RAG) ou supprimer un document déposé
+> par un autre. Le fonds documentaire est désormais collectif. L'anonymous reste
+> verrouillé (toutes les policies sont `to authenticated`) et l'historique
+> (conversations, messages, recherches) reste strictement personnel. Pour revenir à
+> un dépôt réservé, rejouer `0008_admin_only_writes.sql` après avoir réattribué un
+> rôle `admin` dans `app_metadata`.
 
 Les migrations ne sont **pas réversibles** telles quelles : sauvegarder la base avant
 application, ne pas rejouer une migration déjà appliquée.
@@ -69,7 +72,7 @@ remède à un timeout de 10 s. Valeurs posées, alignées sur la charge réelle 
 | --- | --- | --- |
 | `/api/chat` | 120 s | RAG en flux : embedding de la question + RPC + génération |
 | `/api/search` | 30 s | Embedding + RPC `match_chunks` : route la plus fréquentée, bornée volontairement |
-| `/admin/resources` (Server Action de dépôt) | 300 s | Laisse l'ingestion synchrone (extraction → découpage → embeddings) aller à son terme |
+| `/documents` (Server Action de dépôt) | 300 s | Laisse l'ingestion synchrone (extraction → découpage → embeddings) aller à son terme |
 | `/resources/[id]` | 120 s | Résumé à la demande (FR-11) |
 
 Toute autre page reste au défaut plateforme : lui ajouter `export const runtime` ou
@@ -91,8 +94,8 @@ le libellé du formulaire annonce « 4 Mo max ».
 requête, ce qui est un ticket à part entière et non un réglage :
 
 1. le navigateur téléverse le fichier **directement** dans Supabase Storage — la
-   politique `admin_insert_documents` (migration 0008) l'autorise déjà pour un JWT
-   admin, et la CSP `connect-src` couvre le domaine Supabase ;
+   politique `authenticated_insert_documents` (migration 0009) l'autorise déjà pour
+   tout utilisateur authentifié, et la CSP `connect-src` couvre le domaine Supabase ;
 2. une Server Action légère ne reçoit que le **chemin** de l'objet et les
    métadonnées, relit le fichier depuis Storage et lance l'ingestion ;
 3. la limite de taille du bucket `documents` est relevée côté Supabase.
@@ -130,7 +133,7 @@ npm run build       # 12 routes, aucune alerte (Turbopack, Next 16.3.6)
 npm run test        # 245 tests node --test
 ```
 
-Parcours de bout en bout sur l'URL déployée : inscription → promotion admin (§ 2.3) →
+Parcours de bout en bout sur l'URL déployée : inscription →
 dépôt d'un PDF d'environ 3 Mo → statut passé à *Traité* avec le nombre de morceaux →
 recherche sémantique → réponse citée dans le chat → fiche ressource et résumé →
 déconnexion. `npm run validate:mvp-live` rejoue ce parcours en direct contre Supabase

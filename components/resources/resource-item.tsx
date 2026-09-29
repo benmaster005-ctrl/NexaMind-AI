@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import {
   deleteResourceAction,
   updateResourceMetadataAction,
-} from "@/app/(dashboard)/admin/resources/actions";
+} from "@/app/(dashboard)/documents/actions";
 import { RESOURCE_CATEGORIES } from "@/lib/resources/validation";
 import styles from "./resource-item.module.css";
 

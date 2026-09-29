@@ -50,7 +50,7 @@ function createDeps(options: DepsOptions = {}) {
   const record: Recorder = { chunks: [], chunked: [], ready: [], failed: [], reads: 0 };
   const deps = {
     title: "Procedure conges payes",
-    fileName: "documents/admin/abc.txt",
+    fileName: "documents/u1/abc.txt",
     readDocument: async () => {
       record.reads += 1;
       if (options.readThrows) throw options.readThrows;

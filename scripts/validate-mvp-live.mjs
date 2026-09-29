@@ -144,13 +144,12 @@ if (authErr || !auth?.session) {
 }
 const accessToken = auth.session.access_token;
 let db = dbWith(accessToken);
-// Source de verite du role depuis la migration 0008 : `app_metadata`
-// (`user_metadata` est vide et modifiable par l'utilisateur : plus fiable).
-const role = String(auth.user.app_metadata?.role ?? "");
-const isAdmin = role.toLowerCase() === "admin";
+// Gestion des roles supprimee (2026-09-29) : aucun role n'est lu ni attendu.
+// La seule barriere est la session (R-1), verifiee plus bas.
 check("FR-2", "Connexion par e-mail + mot de passe", true, `${EMAIL}`);
-check("FR-2", "Role porte par les metadonnees serveur du compte (app_metadata)", role.length > 0,
-  `app_metadata.role=${role || "(absent)"} (user_metadata n'est plus une source de confiance)`);
+check("FR-2", "Aucun mecanique de role dans le compte", !/app_metadata|user_metadata/.test(
+  readFileSync(join(ROOT, "lib", "supabase", "middleware.ts"), "utf8").replace(/\/\*[\s\S]*?\*\//g, ""),
+), "la garde de route ne lit plus de role");
 
 // FR-2 : anti-force brute. Le verrou est applique par l'ACTION de connexion
 // (`app/(auth)/actions.ts` -> checkRateLimit), pas par l'API Supabase : l'appeler
@@ -172,7 +171,7 @@ check("FR-2", "Role porte par les metadonnees serveur du compte (app_metadata)",
 
 // FR-3 : pages protegees
 {
-  const paths = ["/", "/search", "/chat", "/history", "/admin/resources"];
+  const paths = ["/", "/search", "/chat", "/history", "/documents"];
   const seen = [];
   for (const p of paths) {
     const res = await fetch(`${APP}${p}`, { redirect: "manual", signal: AbortSignal.timeout(30_000) });
@@ -220,13 +219,13 @@ group("BLOC B — Tableau de bord (FR-4)");
   const counter = /Pr[eê]te/i.test(html);
   const shortcuts = /Recherche/.test(html) && /Assistant/.test(html);
   const recent = /Derni[eè]res conversations/.test(html);
-  const navAdmin = /G[eé]rer/.test(html) && !/>Historique</.test(html);
-  const navCollab = />Historique</.test(html);
+  // Navigation unique depuis la suppression des roles (2026-09-29).
+  const nav = />Accueil</.test(html) && />Historique</.test(html) && />Documents</.test(html);
   check("FR-4", "Compteur de ressources pretes", res.status === 200 && counter, `HTTP ${res.status}`);
   check("FR-4", "Raccourcis Recherche + Assistant", shortcuts, "");
   check("FR-4", "Reprise des dernieres conversations", recent, "");
-  check("FR-4", "Navigation conditionnee au role", isAdmin ? navAdmin : navCollab,
-    `role=${role} — onglet Gerer=${navAdmin}, onglet Historique=${navCollab}`);
+  check("FR-4", "Navigation identique pour tous (Accueil, Historique, Documents)", nav,
+    "onglets partages, plus de navigation conditionnee au role");
 }
 
 
@@ -235,22 +234,20 @@ group("BLOC C — Depot, ingestion, dereferencement (FR-5, FR-6, FR-7)");
 // ---------------------------------------------------------------------------
 
 // FR-5 : le depot passe par une Server Action (indeps-jointe Next non
-// appelable en HTTP simple). On verifie donc (a) la garde admin dans l'action,
-// puis on rejoue le pipeline REEL d'ingestion sur une ressource temporaire
-// deposee exactement comme l'action le fait, et on la supprime ensuite.
-const uploadActionSrc = readFileSync(join(ROOT, "app", "(dashboard)", "admin", "resources", "actions.ts"), "utf8");
-// Garde admin : soit la comparaison directe, soit le helper isAdminRole()
-// applique au role de confiance app_metadata (migration 0008).
-const adminGuard =
-  /role !== ["']admin["']/.test(uploadActionSrc) ||
-  (/isAdminRole\(/.test(uploadActionSrc) && /app_metadata/.test(uploadActionSrc));
-const roleTrusted = !/user_metadata/.test(
-  uploadActionSrc.replace(/\/\*[\s\S]*?\*\//g, "").split("\n")
-    .map((l) => l.replace(/(^|[^:])\/\/[^\n]*/, "$1")).join("\n"),
-);
+// appelable en HTTP simple). On verifie donc (a) que l'action n'exige plus
+// aucun role, puis on rejoue le pipeline REEL d'ingestion sur une ressource
+// temporaire deposee exactement comme l'action le fait, et on la supprime.
+const uploadActionSrc = readFileSync(join(ROOT, "app", "(dashboard)", "documents", "actions.ts"), "utf8");
+const uploadCode = uploadActionSrc
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .split("\n")
+  .map((l) => l.replace(/(^|[^:])\/\/[^\n]*/, "$1"))
+  .join("\n");
+// Plus de role : l'action verifie uniquement la presence d'une session.
+const sessionOnly = /if \(!user\)/.test(uploadCode) && !/role|isAdmin/.test(uploadCode);
 const ingestCall = /ingestResource\(/.test(uploadActionSrc);
-check("FR-5", "Depot reserve a l'administrateur (garde dans l'action)", adminGuard && roleTrusted,
-  `garde admin=${adminGuard}, role de confiance app_metadata=${roleTrusted}, appel ingestion=${ingestCall}`);
+check("FR-5", "Depot ouvert a tout utilisateur authentifie (session seule)", sessionOnly && ingestCall,
+  `garde par session=${sessionOnly}, appel ingestion=${ingestCall}`);
 
 const { ingestResource, supabaseIngestDeps } = await import("../lib/ingestion/ingest-resource.ts");
 const { deleteResource } = await import("../lib/resources/management.ts");
@@ -346,21 +343,20 @@ let tempResource = null;
 
 // FR-7 : consultation, gestion, suppression avec dereferencement (R-3)
 {
-  const { res, html } = await getPage("/admin/resources");
+  const { res, html } = await getPage("/documents");
   const listed = res.status === 200 && /Validation MVP/.test(html);
   check("FR-7", "Liste de gestion : ressources avec statut et morceaux", listed, `HTTP ${res.status}`);
 
   const manageSrc = readFileSync(join(ROOT, "lib", "resources", "management.ts"), "utf8");
-  const adminOnly = /role !== "admin"|isAdmin/.test(manageSrc);
-  check("FR-7", "Modification et suppression reservees a l'administrateur", adminOnly,
-    `garde admin dans management.ts=${adminOnly}`);
+  const roleFree = !/isAdminRole|role !== "admin"/.test(manageSrc);
+  check("FR-7", "Modification et suppression ouvertes a tout utilisateur authentifie", roleFree,
+    `aucun controle de role dans management.ts=${roleFree}`);
 
   if (tempResource) {
     const { data: chunksBefore } = await db
       .from("document_chunks").select("id").eq("resource_id", tempResource.id);
     const removed = await deleteResource({
       client: db,
-      role: "admin",
       resourceId: tempResource.id,
     });
     const { data: chunksAfter } = await db

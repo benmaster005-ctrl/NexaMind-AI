@@ -3,9 +3,9 @@
 /**
  * Action serveur « Résumer » (story 5.1, FR-14).
  *
- * Accessible a tout utilisateur authentifie (FR-14 vise les collaborateurs,
- * pas l'admin). Lecture via RLS (`authenticated_read_resources` /
- * `authenticated_read_chunks`), generation Gemini cote serveur uniquement
+ * Accessible a tout utilisateur authentifie. Lecture via RLS
+ * (`authenticated_read_resources` / `authenticated_read_chunks`),
+ * generation Gemini cote serveur uniquement
  * (AD-4 : la cle ne sort jamais du serveur).
  *
  * Aucune ecriture : le resume n'est ni stocke ni indexe.

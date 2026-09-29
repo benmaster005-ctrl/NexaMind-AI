@@ -14,7 +14,7 @@ export default function RegisterPage() {
     <main className={styles.page}>
       <div className={styles.card}>
         <h1 className={styles.title}>NexaMind AI</h1>
-        <p className={styles.subtitle}>Créez votre compte collaborateur</p>
+        <p className={styles.subtitle}>Créez votre compte</p>
         <RegisterForm />
       </div>
     </main>

@@ -201,7 +201,7 @@ check(
   ready.length > 0,
   ready.length > 0
     ? ready.map((r) => `"${r.title}"`).join(", ")
-    : "aucune : uploadez un document via /admin/resources (rôle admin) puis relancez",
+    : "aucune : deposez un document via /documents puis relancez",
 );
 
 // Morceaux vectorisés : preuve que le contenu indexé est lisible.

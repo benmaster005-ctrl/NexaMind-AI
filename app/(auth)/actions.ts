@@ -51,12 +51,13 @@ function isNetworkError(error: unknown): boolean {
 /**
  * Inscription e-mail / mot de passe (FR-1).
  *
- * ⚠ Securite : le role n'est plus choisi par le client. Il est pose par le
- * trigger `on_auth_user_created` (migration 0008) dans `app_metadata`, seule
- * zone non modifiable par l'utilisateur. On n'envoie donc plus de `role` dans
- * les options d'inscription (il serait de toute facon ecrase).
  * Les messages d'erreur sont neutres : ils ne révèlent jamais si un
  * e-mail est déjà inscrit (hypothèse PRD §11 n.3 : inscription ouverte).
+ *
+ * Evolutions : le role n'est plus choisi par le client (il ne l'a jamais ete
+ * depuis 0008), puis la gestion des roles a ete supprimee (migration 0009) :
+ * aucun role n'est pose ni lu. L'inscription et le depot exigent une simple
+ * session authentifiee.
  */
 export async function signUpAction(
   formData: FormData,

@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+﻿import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
@@ -8,9 +8,9 @@ import { decideRouteGuard } from "@/lib/auth/route-guard";
  * Middleware de session et de protection des routes Supabase (story 1.3).
  *
  * 1. Entretient les cookies de session (rafraichissement Supabase SSR).
- * 2. Applique la garde FR-3 via decideRouteGuard : / exige une session,
- *    /admin/* exige en plus le role 'admin' (redirection vers / sinon).
- *    Session expiree ou absente = pas de session -> /login.
+ * 2. Applique la garde FR-3 via decideRouteGuard : les pages applicatives
+ *    (dont /documents, depot partage) exigent une session.
+ *    Evol. 2026-09-29 : plus aucun controle de role.
  */
 export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request });
@@ -42,9 +42,6 @@ export async function updateSession(request: NextRequest) {
   const decision = decideRouteGuard({
     pathname: request.nextUrl.pathname,
     hasSession: user !== null,
-    // `app_metadata` uniquement : `user_metadata` est modifiable par
-    // l'utilisateur (escalade de privileges, cf. migration 0008).
-    role: user?.app_metadata?.["role"],
   });
 
   if (!decision.allowed) {

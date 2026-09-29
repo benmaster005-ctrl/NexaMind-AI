@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
-import { normalizeUserRole, getNavItems, formatRelativeDate } from "@/lib/dashboard/helpers";
+import { getNavItems, formatRelativeDate } from "@/lib/dashboard/helpers";
 import { Card, CardTitle } from "@/components/ui/card";
 import AppNav from "@/components/ui/app-nav";
 import { buildHistoryItems, formatExchangeLabel, HISTORY_LIMIT } from "@/lib/chat/conversations";
@@ -20,23 +20,17 @@ export const metadata: Metadata = {
 /**
  * Page /history (story 5.2, FR-15).
  *
- * L'onglet « Historique » existe deja dans la navigation du collaborateur
- * (`lib/dashboard/helpers.ts`) : cette page le rend fonctionnel. La route est
+ * L'onglet « Historique » existe deja dans la navigation (`lib/dashboard/helpers.ts`) : cette page le rend fonctionnel. La route est
  * protegee par le middleware (`decideRouteGuard`) et la liste est strictement
  * personnelle grace a la RLS `owner_conversations` (R-7) : aucun `owner_id`
  * n'est transmis ni filtre cote client.
  */
 export default async function HistoryPage() {
-  let navRole = normalizeUserRole(null);
   let items: ReturnType<typeof buildHistoryItems> = [];
   let searches: SearchHistoryItem[] = [];
 
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    navRole = normalizeUserRole(user?.app_metadata?.["role"]);
     // 5.3 : recherches personnelles (RLS). Migration 0007 absente -> liste
     // vide, la section est simplement masquee.
     searches = await listSearchHistory({ client: supabase });
@@ -64,7 +58,7 @@ export default async function HistoryPage() {
     items = [];
   }
 
-  const navItems = getNavItems(navRole);
+  const navItems = getNavItems();
 
   return (
     <div className={dashboardStyles.page}>

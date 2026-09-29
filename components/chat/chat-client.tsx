@@ -390,8 +390,8 @@ export default function ChatClient({
                 {/* FR-11 : la reference reste cliquable meme lorsque le modele
                     n'ecrit aucun `[n]` dans sa reponse. Sans ce bloc, la
                     citation dependait de la seule humeur du generateur : le
-                    meme questionnaire reussissait cote admin et echouait cote
-                    collaborateur. */}
+                    meme questionnaire pouvait reussir et echouer selon
+                    l'utilisateur. */}
                 {!abstained && sources.length > 0 ? (
                   <div className={styles.sourcesBox}>
                     <p className={styles.sourcesTitle}>{CHAT_UI_MESSAGES.sourcesTitle}</p>

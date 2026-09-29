@@ -1,13 +1,13 @@
-"use client";
+﻿"use client";
 
 import { useState, type FormEvent } from "react";
 
-import { uploadResourceAction } from "@/app/(dashboard)/admin/resources/actions";
+import { uploadResourceAction } from "@/app/(dashboard)/documents/actions";
 import { RESOURCE_CATEGORIES } from "@/lib/resources/validation";
 import styles from "./upload-form.module.css";
 
 /**
- * Formulaire de dépôt documentaire admin (story 2.1, FR-5).
+ * Formulaire de dépôt documentaire partagé (story 2.1, FR-5).
  * Titre + catégorie fermée + tags libres + fichier (PDF/DOCX/TXT/MD, 4 Mo).
  */
 export default function UploadForm() {

@@ -3,60 +3,32 @@
  *
  * Module sans dependance (ni Next, ni Supabase) pour rester testable
  * sans reseau via `npm run test:dashboard`.
+ *
+ * Evol. 2026-09-29 : gestion des roles SUPPRIMEE. Tous les utilisateurs
+ * authentifies peuvent deposer/gerer des documents. La navigation est
+ * donc unique (plus de variante admin / collaborateur).
  */
 
-export type UserRole = "admin" | "collaborateur";
-
-/** Icones disponibles du socle (components/ui/icon.tsx). */
-export type IconName = "home" | "search" | "chat" | "history" | "admin";
+export type IconName = "home" | "search" | "chat" | "history" | "documents";
 
 export interface NavItem {
   href: string;
   label: string;
   icon: IconName;
-  adminOnly: boolean;
 }
 
 /**
- * Normalise le role lu depuis **app_metadata** (defaut collaborateur).
- *
- * ⚠ Securite : le role ne doit JAMAIS etre lu dans `user_metadata`, que
- * l'utilisateur peut modifier lui-meme (auth.updateUser). Seul `app_metadata`
- * est ecrit par le serveur (trigger d'inscription, migration 0008).
+ * Navigation unique, identique pour tous les utilisateurs authentifies :
+ * [Accueil, Recherche, Assistant, Historique, Documents].
  */
-export function normalizeUserRole(role: unknown): UserRole {
-  return typeof role === "string" && role.trim().toLowerCase() === "admin"
-    ? "admin"
-    : "collaborateur";
-}
-
-/**
- * Navigation EXPERIENCE.md §1 : 4 onglets, le 4e depend du role.
- * - Collaborateur : [Accueil, Recherche, Assistant, Historique]
- * - Admin : [Accueil, Recherche, Assistant, Gerer]
- */
-export function getNavItems(role: UserRole): NavItem[] {
-  const items: NavItem[] = [
-    { href: "/", label: "Accueil", icon: "home", adminOnly: false },
-    { href: "/search", label: "Recherche", icon: "search", adminOnly: false },
-    { href: "/chat", label: "Assistant", icon: "chat", adminOnly: false },
+export function getNavItems(): NavItem[] {
+  return [
+    { href: "/", label: "Accueil", icon: "home" },
+    { href: "/search", label: "Recherche", icon: "search" },
+    { href: "/chat", label: "Assistant", icon: "chat" },
+    { href: "/history", label: "Historique", icon: "history" },
+    { href: "/documents", label: "Documents", icon: "documents" },
   ];
-  if (role === "admin") {
-    items.push({
-      href: "/admin/resources",
-      label: "Gérer",
-      icon: "admin",
-      adminOnly: true,
-    });
-  } else {
-    items.push({
-      href: "/history",
-      label: "Historique",
-      icon: "history",
-      adminOnly: false,
-    });
-  }
-  return items;
 }
 
 /**

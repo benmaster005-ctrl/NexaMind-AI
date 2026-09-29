@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
-import { normalizeUserRole, getNavItems } from "@/lib/dashboard/helpers";
+import { getNavItems } from "@/lib/dashboard/helpers";
 import { Card, CardTitle } from "@/components/ui/card";
 import AppNav from "@/components/ui/app-nav";
 import { READY_STATUS } from "@/lib/ai/summary";
@@ -59,8 +59,6 @@ export default async function ResourceFichePage({
   // Hors du try : `redirect` leve une erreur interne de Next qu'un `catch`
   // avalerait, transformant la redirection en 404 silencieux.
   if (!user) redirect("/login");
-  // `app_metadata` : role ecrit par le serveur, pas modifiable par l'utilisateur.
-  const navRole = normalizeUserRole(user.app_metadata?.["role"]);
 
   let resource: {
     id: string;
@@ -97,7 +95,7 @@ export default async function ResourceFichePage({
 
   if (!resource) notFound();
 
-  const navItems = getNavItems(navRole);
+  const navItems = getNavItems();
   const tags = resource.tags ?? [];
   const canSummarize = resource.status === READY_STATUS;
 

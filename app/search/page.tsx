@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { createClient } from "@/lib/supabase/server";
-import { normalizeUserRole, getNavItems } from "@/lib/dashboard/helpers";
+import { getNavItems } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
 import SearchClient from "@/components/search/search-client";
@@ -34,21 +34,15 @@ export default async function SearchPage({
   const initialQuery =
     typeof params.q === "string" && params.q.trim() ? params.q.trim() : "";
 
-  let navRole = normalizeUserRole(null);
   let initialHistory: SearchHistoryItem[] = [];
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    navRole = normalizeUserRole(user?.app_metadata?.["role"]);
     // Migration 0007 absente -> liste vide, aucun crash (matrice I/O).
     initialHistory = await listSearchHistory({ client: supabase });
   } catch {
-    navRole = normalizeUserRole(null);
     initialHistory = [];
   }
-  const navItems = getNavItems(navRole);
+  const navItems = getNavItems();
 
   return (
     <div className={dashboardStyles.page}>

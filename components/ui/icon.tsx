@@ -17,7 +17,8 @@ const PATHS: Record<IconName, string> = {
   search: "M11 4a7 7 0 1 0 4.19 12.61L20 21.42 21.42 20l-4.81-4.81A7 7 0 0 0 11 4zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z",
   chat: "M20 5H4a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v4l5-4h8a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z",
   history: "M12 4a8 8 0 1 1-7.4 5.06l-1.9-.4A10 10 0 1 0 12 2v2zm1 4h-2v7l5 3 1-1.7-4-2.4z",
-  admin: "M12 3 3 7v2h18V7zM5 11v7H3v2h18v-2h-2v-7h-2v7h-3v-7h-2v7H7v-7z",
+  // Dossier ouvert : l'icone du depot documentaire partage.
+  documents: "M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v1H3zm0 3h18l-1.6 8.6a2 2 0 0 1-2 1.4H6.6a2 2 0 0 1-2-1.6z",
 };
 
 export function Icon({ name, className }: IconProps) {

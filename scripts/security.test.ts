@@ -1,13 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 /**
- * Audit statique de securite (2026-09-27, apres les corrections critiques).
+ * Audit statique de securite (2026-09-27, relu le 2026-09-29).
  *
- * Execute avec `npm run test:security`, hors reseau. Il verrouille les trois
- * corrections de l'audit :
- *   1. le role n'est plus lu dans `user_metadata` (modifiable par l'utilisateur) ;
- *   2. les policies d'ecriture RLS sont reservees a l'admin (migration 0008) ;
- *   3. les en-tetes de securite HTTP sont poses par next.config.ts.
+ * Execute avec `npm run test:security`, hors reseau. Il verrouille :
+ *   1. l'absence totale de mecanique de role dans le code applicatif
+ *      (la gestion des roles a ete supprimee le 2026-09-29) ;
+ *   2. le verrou de l'anonyme : toute ecriture reste `to authenticated` ;
+ *   3. les en-tetes de securite HTTP poses par next.config.ts.
  */
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
@@ -51,72 +51,84 @@ function codeOnly(file) {
     .join("\n");
 }
 
-describe("1. Source de verite du role (escalade de privileges)", () => {
-  it("aucun code applicatif ne lit user_metadata", () => {
-    const offenders = SOURCES.filter((file) => /user_metadata/.test(codeOnly(file)));
-    assert.deepEqual(offenders, [], `user_metadata lu dans : ${offenders.join(", ")}`);
+describe("1. Suppression de la gestion des roles", () => {
+  it("aucune source applicative ne manipule de role", () => {
+    // Plus de `app_metadata`/`user_metadata` de role, plus de helper de role :
+    // l'autorisation repose uniquement sur « session presente ou non ».
+    const rolePattern = /app_metadata|user_metadata|isAdminRole|normalizeUserRole|is_admin/;
+    const offenders = SOURCES.filter((file) => rolePattern.test(codeOnly(file)));
+    assert.deepEqual(offenders, [], `role encore lu dans : ${offenders.join(", ")}`);
   });
 
-  it("les points de controle de role lisent app_metadata", () => {
-    const guardFiles = [
-      "lib/supabase/middleware.ts",
-      "app/(dashboard)/admin/resources/actions.ts",
-      "app/(dashboard)/resources/[id]/page.tsx",
-      "app/page.tsx",
-      "app/chat/page.tsx",
-      "app/chat/[id]/page.tsx",
-      "app/search/page.tsx",
-      "app/(dashboard)/history/page.tsx",
-    ];
-    for (const file of guardFiles) {
-      assert.match(read(file), /app_metadata/, file);
-    }
+  it("le depot documentaire n'est plus conditionne a un role", () => {
+    const upload = codeOnly("app/(dashboard)/documents/actions.ts");
+    assert.ok(
+      !/role|isAdmin|is_admin/.test(upload),
+      "l'action de depot ne doit plus tester de role",
+    );
+    // Seule condition d'acces : une session.
+    assert.match(read("app/(dashboard)/documents/actions.ts"), /if \(!user\)/);
   });
 
-  it("l'inscription n'envoie plus de role au client", () => {
+  it("l'inscription n'envoie aucun role au client", () => {
     const auth = read("app/(auth)/actions.ts");
     assert.ok(
       !/options:\s*\{\s*data:\s*\{\s*role/.test(auth),
-      "l'inscription ne doit pas proposer le role (escalade)",
+      "l'inscription ne doit pas proposer de role",
     );
+  });
+
+  it("la migration 0009 retire la fonction et le trigger de role", () => {
+    const sql = read("supabase/migrations/0009_open_writes_no_roles.sql");
+    assert.match(sql, /drop function if exists public\.is_admin\(\)/);
+    assert.match(sql, /drop trigger if exists on_auth_user_created on auth\.users/);
   });
 });
 
-describe("2. RLS : les ecritures sont reservees a l'admin (migration 0008)", () => {
-  const lower = read("supabase/migrations/0008_admin_only_writes.sql").toLowerCase();
+describe("2. RLS : l'anonyme reste verrouille, l'ecriture est ouverte aux authentifies", () => {
+  const lower = read("supabase/migrations/0009_open_writes_no_roles.sql").toLowerCase();
 
-  it("is_admin() s'appuie sur app_metadata du JWT", () => {
-    assert.match(lower, /create or replace function public\.is_admin\(\)/);
-    assert.match(lower, /auth\.jwt\(\) -> 'app_metadata' ->> 'role'/);
-  });
-
-  it("aucune policy d'ecriture ne reste ouverte a tous les authentifies", () => {
-    const wideOpen = [
-      /for insert to authenticated with check \(true\)/,
-      /for update to authenticated\s+using \(true\)/,
-      /for delete to authenticated using \(true\)/,
-    ].filter((re) => re.test(lower));
-    assert.deepEqual(wideOpen.map(String), [], "policy d'ecriture encore ouverte");
-  });
-
-  it("chaque ecriture (resources, chunks, storage) est gardee par is_admin()", () => {
-    for (const table of ["public.resources", "public.document_chunks", "storage.objects"]) {
-      const blocks = lower
-        .split(` on ${table};`)
-        .join(" on @@;")
-        .split("@@")
-        .filter((b) => /for (insert|update|delete)/.test(b));
-      assert.ok(blocks.length > 0, `aucune policy d'ecriture sur ${table}`);
-      for (const block of blocks) {
-        assert.match(block, /public\.is_admin\(\)/, `ecriture non gardee sur ${table}`);
-      }
+  it("aucune policy d'ecriture n'est exposee a l'anonyme ou au public", () => {
+    // `to authenticated` est obligatoire sur toute ecriture : c'est la seule
+    // barriere restante apres la suppression des roles.
+    const statements = lower
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => /^create policy/.test(s));
+    assert.ok(statements.length >= 8, `policies trop peu nombreuses : ${statements.length}`);
+    for (const statement of statements) {
+      if (!/\bfor (insert|update|delete|all)\b/.test(statement)) continue;
+      assert.match(
+        statement,
+        /to authenticated/,
+        `policy d'ecriture non restreinte aux authentifies : ${statement.replace(/\s+/g, " ")}`,
+      );
+      assert.ok(
+        !/\bto (anon|public)\b/.test(statement),
+        `policy d'ecriture accessible en lecture publique : ${statement.replace(/\s+/g, " ")}`,
+      );
     }
   });
 
-  it("le trigger d'inscription neutralise le role fourni par le client", () => {
-    assert.match(lower, /create trigger on_auth_user_created/);
-    assert.match(lower, /raw_user_meta_data = coalesce\(raw_user_meta_data, '\{\}'::jsonb\) - 'role'/);
-    assert.match(lower, /jsonb_build_object\('role', 'collaborateur'\)/);
+  it("l'ecriture documentaire couvre les trois tables attendues", () => {
+    for (const table of ["public.resources", "public.document_chunks", "storage.objects"]) {
+      const writes = lower
+        .split(";")
+        .map((s) => s.trim())
+        .filter((s) => /^create policy/.test(s) && s.includes(`on ${table}`))
+        .filter((s) => /for (insert|update|delete|all)/.test(s));
+      assert.ok(writes.length > 0, `aucune ecriture rouverte sur ${table}`);
+    }
+  });
+
+  it("l'historique reste strictement personnel (R-7)", () => {
+    // La 0009 ne doit toucher ni conversations, ni messages, ni recherches.
+    for (const table of ["conversations", "messages", "search_history"]) {
+      assert.ok(
+        !lower.includes(`on public.${table}`),
+        `${table} ne doit pas etre reecrite par la migration des roles`,
+      );
+    }
   });
 });
 

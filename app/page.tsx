@@ -1,10 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
 import {
   getNavItems,
   formatRelativeDate,
-  normalizeUserRole,
 } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +25,6 @@ interface ConversationRow {
  * Requete Supabase en echec -> mode degrade, jamais d'ecran bloque.
  */
 export default async function Home() {
-  let role = normalizeUserRole(null);
   let readyCount: number | null = null;
   let lastUpdate: string | null = null;
   let conversations: ConversationRow[] = [];
@@ -34,10 +32,6 @@ export default async function Home() {
 
   try {
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    role = normalizeUserRole(user?.app_metadata?.["role"]);
 
     const { count, error: countError } = await supabase
       .from("resources")
@@ -67,8 +61,7 @@ export default async function Home() {
     degraded = true;
   }
 
-  const navItems = getNavItems(role);
-  const isAdmin = role === "admin";
+  const navItems = getNavItems();
 
   return (
     <div className={styles.page}>
@@ -78,7 +71,7 @@ export default async function Home() {
         <header className={styles.header}>
           <h1 className={styles.brand}>
             NexaMind AI
-            <Badge>{isAdmin ? "Admin" : "Collaborateur"}</Badge>
+            <Badge>Fonds partagé</Badge>
           </h1>
           <SignOutButton />
         </header>
@@ -136,14 +129,12 @@ export default async function Home() {
           </div>
         </Card>
 
-        {isAdmin ? (
-          <Card aria-label="Administration">
-            <CardTitle>Administration</CardTitle>
-            <Link className={buttonClass("secondary")} href="/admin/resources">
-              Deposer un document
-            </Link>
-          </Card>
-        ) : null}
+        <Card aria-label="Documents">
+          <CardTitle>Documents</CardTitle>
+          <Link className={buttonClass("secondary")} href="/documents">
+            Déposer un document
+          </Link>
+        </Card>
 
         <Card aria-label="Dernieres conversations">
           <CardTitle>Dernieres conversations</CardTitle>

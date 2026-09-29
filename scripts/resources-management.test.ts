@@ -11,11 +11,9 @@ import assert from "node:assert/strict";
 import {
   MSG_DELETED,
   MSG_DELETED_PARTIAL,
-  MSG_FORBIDDEN,
   MSG_METADATA_SAVED,
   MSG_NOT_FOUND,
   deleteResource,
-  isAdminRole,
   updateResourceMetadata,
 } from "../lib/resources/management.ts";
 const RESOURCE_ID = "11111111-2222-3333-4444-555555555555";
@@ -30,7 +28,7 @@ function stubClient(options = {}) {
             calls.push({ table, op: "select.eq", columns, column, value });
             if (options.selectError) return { data: null, error: { message: options.selectError } };
             if (options.missingPath) return { data: { storage_path: null }, error: null };
-            return { data: { storage_path: "admin/abc.pdf" }, error: null };
+            return { data: { storage_path: "u1/abc.pdf" }, error: null };
           },
         }),
       }),
@@ -63,18 +61,10 @@ function stubClient(options = {}) {
 }
 
 describe("gestion ressources (plan 2.4)", () => {
-  it("isAdminRole : seul admin (insensible a la casse) est autorise", () => {
-    assert.equal(isAdminRole("admin"), true);
-    assert.equal(isAdminRole(" Admin "), true);
-    assert.equal(isAdminRole("collaborateur"), false);
-    assert.equal(isAdminRole(null), false);
-  });
-
   it("MAJ : persiste categorie + tags normalises", async () => {
     const { client, calls } = stubClient();
     const result = await updateResourceMetadata({
       client,
-      role: "admin",
       resourceId: RESOURCE_ID,
       category: "FAQ",
       tags: "RH, Congés, rh",
@@ -85,21 +75,10 @@ describe("gestion ressources (plan 2.4)", () => {
     assert.deepEqual(update.values, { category: "FAQ", tags: ["rh", "congés"] });
   });
 
-  it("MAJ : collaborateur refuse + categorie invalide rejetee", async () => {
+  it("MAJ : categorie invalide et identifiant malforme rejetes", async () => {
     const { client } = stubClient();
-    const denied = await updateResourceMetadata({
-      client,
-      role: "collaborateur",
-      resourceId: RESOURCE_ID,
-      category: "FAQ",
-      tags: "",
-    });
-    assert.equal(denied.success, false);
-    assert.equal(denied.message, MSG_FORBIDDEN);
-
     const badCat = await updateResourceMetadata({
       client,
-      role: "admin",
       resourceId: RESOURCE_ID,
       category: "Hors liste",
       tags: "",
@@ -108,7 +87,6 @@ describe("gestion ressources (plan 2.4)", () => {
 
     const badId = await updateResourceMetadata({
       client,
-      role: "admin",
       resourceId: "nope",
       category: "FAQ",
       tags: "",
@@ -119,7 +97,7 @@ describe("gestion ressources (plan 2.4)", () => {
 
   it("suppression : DB d'abord (cascade), puis Storage", async () => {
     const { client, calls } = stubClient();
-    const result = await deleteResource({ client, role: "admin", resourceId: RESOURCE_ID });
+    const result = await deleteResource({ client, resourceId: RESOURCE_ID });
     assert.equal(result.success, true);
     assert.equal(result.message, MSG_DELETED);
     assert.deepEqual(
@@ -127,25 +105,19 @@ describe("gestion ressources (plan 2.4)", () => {
       ["select.eq", "delete.eq", "remove"],
     );
     assert.equal(calls[1].table, "resources");
-    assert.deepEqual(calls[2].paths, ["admin/abc.pdf"]);
+    assert.deepEqual(calls[2].paths, ["u1/abc.pdf"]);
   });
 
-  it("suppression : non-admin refuse, ressource absente signalee", async () => {
-    const { client, calls } = stubClient();
-    const denied = await deleteResource({ client, role: "collaborateur", resourceId: RESOURCE_ID });
-    assert.equal(denied.success, false);
-    assert.equal(denied.message, MSG_FORBIDDEN);
-    assert.equal(calls.length, 0);
-
+  it("suppression : ressource absente signalee", async () => {
     const { client: missing } = stubClient({ missingPath: true });
-    const notFound = await deleteResource({ client: missing, role: "admin", resourceId: RESOURCE_ID });
+    const notFound = await deleteResource({ client: missing, resourceId: RESOURCE_ID });
     assert.equal(notFound.success, false);
     assert.equal(notFound.message, MSG_NOT_FOUND);
   });
 
   it("suppression : echec Storage apres DB = message partiel (base coherente)", async () => {
     const { client, calls } = stubClient({ storageError: "boom" });
-    const result = await deleteResource({ client, role: "admin", resourceId: RESOURCE_ID });
+    const result = await deleteResource({ client, resourceId: RESOURCE_ID });
     assert.equal(result.success, true);
     assert.equal(result.message, MSG_DELETED_PARTIAL);
     assert.equal(calls.some((c) => c.op === "delete.eq"), true);

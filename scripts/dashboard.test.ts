@@ -10,29 +10,25 @@ import assert from "node:assert/strict";
 import {
   getNavItems,
   formatRelativeDate,
-  normalizeUserRole,
 } from "../lib/dashboard/helpers.ts";
 
 describe("dashboard helpers (plan 1.4)", () => {
-  it("donne Historique au collaborateur et Gerer a l'admin", () => {
-    const collab = getNavItems("collaborateur").map((i) => i.label);
-    assert.deepEqual(collab, ["Accueil", "Recherche", "Assistant", "Historique"]);
-    const admin = getNavItems("admin").map((i) => i.label);
-    assert.deepEqual(admin, ["Accueil", "Recherche", "Assistant", "Gérer"]);
+  it("donne la meme navigation a tout utilisateur authentifie", () => {
+    assert.deepEqual(getNavItems().map((i) => i.label), [
+      "Accueil",
+      "Recherche",
+      "Assistant",
+      "Historique",
+      "Documents",
+    ]);
   });
 
-  it("ne montre jamais Gerer au collaborateur", () => {
-    const items = getNavItems("collaborateur");
-    assert.equal(items.some((i) => i.href.startsWith("/admin")), false);
-  });
-
-  it("normalise le role (defaut collaborateur)", () => {
-    assert.equal(normalizeUserRole("admin"), "admin");
-    assert.equal(normalizeUserRole(" Admin "), "admin");
-    assert.equal(normalizeUserRole("collaborateur"), "collaborateur");
-    assert.equal(normalizeUserRole(null), "collaborateur");
-    assert.equal(normalizeUserRole(undefined), "collaborateur");
-    assert.equal(normalizeUserRole("superadmin"), "collaborateur");
+  it("expose le depot documentaire a tous (plus de role)", () => {
+    // Gestion des roles supprimee : chaque onglet est accessible a tous.
+    const items = getNavItems();
+    assert.equal(items.length, 5);
+    assert.ok(items.some((i) => i.href === "/documents"));
+    assert.ok(items.some((i) => i.href === "/history"));
   });
 
   it("formate les dates relatives en francais", () => {

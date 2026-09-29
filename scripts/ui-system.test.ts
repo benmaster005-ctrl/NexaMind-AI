@@ -40,7 +40,7 @@ const SHELL_PAGES = [
   "app/chat/page.tsx",
   "app/chat/[id]/page.tsx",
   "app/(dashboard)/history/page.tsx",
-  "app/(dashboard)/admin/resources/page.tsx",
+  "app/(dashboard)/documents/page.tsx",
   "app/(dashboard)/resources/[id]/page.tsx",
 ];
 
@@ -236,11 +236,11 @@ describe("navigation unique a icônes sobres", () => {
     assert.match(nav, /aria-label="Navigation principale"/);
   });
 
-  it("les 7 ecrans branchent <AppNav> avec des onglets derives du role", () => {
+  it("les 7 ecrans branchent <AppNav> avec les onglets partages", () => {
     for (const file of SHELL_PAGES) {
       const src = read(file);
       assert.match(src, /<AppNav /, `${file} n'affiche plus la navigation`);
-      assert.match(src, /getNavItems\(/, `${file} ne derive pas les onglets du role`);
+      assert.match(src, /getNavItems\(/, `${file} ne branche pas les onglets communs`);
     }
   });
 
@@ -256,16 +256,16 @@ describe("navigation unique a icônes sobres", () => {
     assert.equal(isNavItemActive("/history", "/chat"), false);
   });
 
-  it("NAV_ROLE : 4 onglets, le 4e depend du role, libelles inchange", () => {
+  it("NAV : 5 onglets identiques pour tout utilisateur authentifie", () => {
+    // Gestion des roles supprimee : la navigation ne depend plus du compte.
     assert.deepEqual(
-      getNavItems("collaborateur").map((i) => i.label),
-      ["Accueil", "Recherche", "Assistant", "Historique"],
+      getNavItems().map((i) => i.label),
+      ["Accueil", "Recherche", "Assistant", "Historique", "Documents"],
     );
     assert.deepEqual(
-      getNavItems("admin").map((i) => i.label),
-      ["Accueil", "Recherche", "Assistant", "Gérer"],
+      getNavItems().map((i) => i.href),
+      ["/", "/search", "/chat", "/history", "/documents"],
     );
-    assert.equal(getNavItems("collaborateur").some((i) => i.adminOnly), false);
   });
 
   it("barre basse 64px + zone sure, sidebar desktop 260px reservee", () => {
@@ -295,7 +295,7 @@ describe("icônes SVG au trait (remplacent les emoji)", () => {
   it(" chaque onglet pointe une icone reellement dessinee", () => {
     const drawn = [...icon.matchAll(/^  (\w+):/gm)].map((m) => m[1]);
     assert.ok(drawn.length >= 5, ` jeu réduit : ${drawn.join(", ")}`);
-    for (const item of [...getNavItems("admin"), ...getNavItems("collaborateur")]) {
+    for (const item of getNavItems()) {
       assert.ok(drawn.includes(item.icon), `icone « ${item.icon} » non dessinee`);
     }
   });

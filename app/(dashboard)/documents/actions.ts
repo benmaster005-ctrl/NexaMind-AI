@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { randomUUID } from "node:crypto";
 
@@ -8,7 +8,6 @@ import { createClient } from "@/lib/supabase/server";
 import { ingestResource, supabaseIngestDeps } from "@/lib/ingestion/ingest-resource";
 import {
   deleteResource,
-  isAdminRole,
   updateResourceMetadata,
   type ManagementResult,
 } from "@/lib/resources/management";
@@ -27,7 +26,6 @@ export interface UploadActionResult {
   message: string;
 }
 
-const MSG_FORBIDDEN = "Accès réservé aux administrateurs.";
 const MSG_BUCKET_MISSING =
   "Stockage non configuré : jouez la migration 0002_storage_resources.sql dans Supabase > SQL Editor > Run.";
 const MSG_NETWORK =
@@ -43,10 +41,9 @@ function getExtension(fileName: string): string {
 }
 
 /**
- * Dépôt documentaire admin (story 2.1, FR-5).
- * Vérifie le rôle 'admin' côté serveur (403 sinon), valide le fichier
- * (format, 4 Mo — `MAX_UPLOAD_BYTES`), l'envoie au bucket privé `documents`, puis insère
- * la ressource en statut 'En cours' (l'ingestion viendra en story 2.2+).
+ * Dépôt documentaire ouvert a tout utilisateur authentifie (FR-5).
+ * Valide le fichier (format, 4 Mo — `MAX_UPLOAD_BYTES`), l'envoie au
+ * bucket privé `documents`, puis insère la ressource en statut 'En cours'.
  */
 export async function uploadResourceAction(
   formData: FormData,
@@ -55,12 +52,8 @@ export async function uploadResourceAction(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  // Role de confiance : `app_metadata` (ecrit par le serveur). `user_metadata`
-  // est modifiable par l'utilisateur et ne doit jamais autoriser une ecriture.
-  const role = user?.app_metadata?.["role"];
-  if (!user || !isAdminRole(role)) {
-    return { success: false, message: MSG_FORBIDDEN };
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour déposer un document." };
   }
 
   const title = String(formData.get("title") ?? "");
@@ -119,14 +112,14 @@ export async function uploadResourceAction(
       .select("id")
       .single();
     if (insertError || !inserted?.id) {
-      // �0vite les fichiers orphelins : retire l'objet si l'insert échoue.
+      // Evite les fichiers orphelins : retire l'objet si l'insert échoue.
       await supabase.storage.from("documents").remove([storagePath]);
       return { success: false, message: MSG_NETWORK };
     }
 
     // La liste affiche statut, nombre de morceaux et raison d'échec :
     // on la rafraîchit sans attendre un rechargement manuel.
-    revalidatePath("/admin/resources");
+    revalidatePath("/documents");
 
     // Ingestion (story 2.2, FR-6) : extraction du texte + découpage en
     // morceaux de 400-500 tokens. La vectorisation Gemini arrive en 2.3.
@@ -156,8 +149,8 @@ export async function uploadResourceAction(
 }
 
 /**
- * Mise � jour des m�tadonn�es (story 2.4, FR-5).
- * Admin-only : cat�gorie ferm�e + tags libres normalis�s.
+ * Mise a jour des metadonnees (story 2.4, FR-5).
+ * Categorie fermee + tags libres normalises. Ouvert a tout authentifie.
  */
 export async function updateResourceMetadataAction(
   resourceId: string,
@@ -168,20 +161,22 @@ export async function updateResourceMetadataAction(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour modifier un document." };
+  }
   const result = await updateResourceMetadata({
     client: supabase,
-    role: user?.app_metadata?.["role"],
     resourceId,
     category,
     tags,
   });
-  if (result.success) revalidatePath("/admin/resources");
+  if (result.success) revalidatePath("/documents");
   return result;
 }
 
 /**
- * Suppression avec d�r�f�rencement (story 2.4, FR-7).
- * Admin-only : delete DB (cascade pgvector) puis objet Storage.
+ * Suppression avec dereferencement (story 2.4, FR-7).
+ * Delete DB (cascade pgvector) puis objet Storage. Ouvert a tout authentifie.
  */
 export async function deleteResourceAction(
   resourceId: string,
@@ -190,11 +185,13 @@ export async function deleteResourceAction(
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  if (!user) {
+    return { success: false, message: "Connectez-vous pour supprimer un document." };
+  }
   const result = await deleteResource({
     client: supabase,
-    role: user?.app_metadata?.["role"],
     resourceId,
   });
-  if (result.success) revalidatePath("/admin/resources");
+  if (result.success) revalidatePath("/documents");
   return result;
 }

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
 import { getNavItems } from "@/lib/dashboard/helpers";
@@ -36,11 +36,13 @@ interface ResourceRow {
 }
 
 /**
- * Espace Gestion & Dépôt admin (stories 2.1-2.4, FR-5/FR-6/FR-7).
- * Route déjà verrouillée par la garde 1.3 (rôle admin requis).
- * Dépôt + édition métadonnées + suppression avec cascade pgvector.
+ * Espace de depot et de gestion documentaire partage (stories 2.1-2.4,
+ * FR-5/FR-6/FR-7).
+ * Ouvert a tout utilisateur authentifie (garde 1.3 : session requise, aucun
+ * controle de role). Dépôt + édition métadonnées + suppression avec cascade
+ * pgvector.
  */
-export default async function AdminResourcesPage() {
+export default async function DocumentsPage() {
   let resources: ResourceRow[] = [];
   let degraded = false;
 
@@ -61,12 +63,12 @@ export default async function AdminResourcesPage() {
 
   return (
     <div className={dashboardStyles.page}>
-      <AppNav items={getNavItems("admin")} active="/admin/resources" />
+      <AppNav items={getNavItems()} active="/documents" />
       <div className={dashboardStyles.inner}>
         <header className={dashboardStyles.header}>
           <h1 className={dashboardStyles.brand}>
-            Gérer
-            <Badge>Admin</Badge>
+            Gérer les documents
+            <Badge>Partage</Badge>
           </h1>
           <Link className={buttonClass("ghost")} href="/">
             ← Accueil
