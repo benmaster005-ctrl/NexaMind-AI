@@ -28,27 +28,6 @@
   flex: 1;
 }
 
-.header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
-}
-
-.title {
-  margin: 0;
-  font-size: var(--fs-xl);
-  font-weight: 700;
-  color: var(--text);
-}
-
-.subtitle {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
 .thread {
   display: flex;
   flex-direction: column;

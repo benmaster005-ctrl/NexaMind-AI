@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getNavItems, formatRelativeDate } from "@/lib/dashboard/helpers";
 import { Card, CardTitle } from "@/components/ui/card";
 import AppNav from "@/components/ui/app-nav";
+import PageHeader from "@/components/ui/page-header";
 import { buildHistoryItems, formatExchangeLabel, HISTORY_LIMIT } from "@/lib/chat/conversations";
 import { listSearchHistory } from "@/lib/search/history-store";
 import type { SearchHistoryItem } from "@/lib/search/history";
@@ -63,9 +64,12 @@ export default async function HistoryPage() {
   return (
     <div className={dashboardStyles.page}>
       <div className={dashboardStyles.inner}>
-        <Card  aria-label="Historique des conversations">
-          <CardTitle>Historique</CardTitle>
+        <PageHeader
+          title="Historique"
+          description="Vos conversations passées et vos recherches récentes, à reprendre en un clic."
+        />
 
+        <Card aria-label="Historique des conversations">
           {items.length > 0 ? (
             <ul className={styles.list}>
               {items.map((item) => (

@@ -32,7 +32,7 @@ realise depuis (elle n'est pas supprimee : elle explique pourquoi le plan a chan
 - status: open
   source_plan: none
   summary: Lot 2 de la refonte UX/UI — composants des ecrans de contenu (/search, /chat, /history) : primitives partagees, icones du socle a la place des glyphes de texte, aucun style inline.
-  evidence: Scindé depuis la refonte globale du 2026-09-27. Les **couleurs** sont deja passees aux tokens par la story 7.1 (livree), mais les recettes locales demeurent : `.sendButton` dans `chat.module.css`, pastilles, rejeu et `.recentDelete` dans `search.module.css`, glyphes `↑` et `✕` a la place des icones du socle, 3 styles inline dans `chat-client.tsx`, et deux ecrans sans `h1` (`/search`, `/history`). Traite par les stories 7.3 (en-tetes), 7.6 (assistant), 7.7 (recherche) et 7.8 (historique).
+  evidence: Scindé depuis la refonte globale du 2026-09-27. Les **couleurs** sont deja passees aux tokens par la story 7.1 (livree), mais les recettes locales demeurent : `.sendButton` dans `chat.module.css`, pastilles, rejeu et `.recentDelete` dans `search.module.css`, glyphes `↑` et `✕` a la place des icones du socle, 3 styles inline dans `chat-client.tsx`, et deux ecrans sans `h1` (`/search`, `/history`). **Partiellement livre le 2026-09-29 par la story 7.3** (`plan-7-3-en-tete-unifie.md`, status built) : les deux ecrans ont leur `h1` via `PageHeader` et l'en-tete du chat a ete retire avec ses styles. Reste ouvert : `.sendButton`, pastilles, rejeu, `.recentDelete`, glyphes `↑`/`✕` et styles inline — traite par 7.6 (assistant), 7.7 (recherche) et 7.8 (historique).
 
 - status: open
   source_plan: none

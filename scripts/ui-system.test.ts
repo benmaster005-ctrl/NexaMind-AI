@@ -328,7 +328,9 @@ describe("hygiene du shell", () => {
   it("les primitives du socle sont reellement consommees", () => {
     const consumers = (needle) => TSX.filter((f) => read(f).includes(needle)).length;
     assert.ok(consumers("@/components/ui/card") >= 4, "Card presque utilisee");
-    assert.ok(consumers("@/components/ui/button") >= 3, "buttonClass presque utilise");
+    // 7.3 : le raccourci « ← Accueil » de /documents a disparu ; il restait le
+    // bouton de recherche du tableau de bord et la déconnexion.
+    assert.ok(consumers("@/components/ui/button") >= 2, "buttonClass sans consommateur réel");
     assert.ok(consumers("@/components/ui/badge") >= 2, "Badge presque utilise");
     assert.ok(consumers("@/components/ui/app-nav") >= 7, "AppNav moins utilise que les 7 ecrans");
   });
@@ -629,6 +631,100 @@ describe("finitions du socle (story 7.2)", () => {
         }
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Story 7.3 : en-tête de page unifié, navigation sans doublon.
+// ---------------------------------------------------------------------------
+
+describe("story 7.3 : en-tête et navigation harmonisés", () => {
+  /** Les écrans qui rendent leur h1 via le composant partagé. */
+  const HEADER_SCREENS = [
+    "app/search/page.tsx",
+    "app/chat/page.tsx",
+    "app/chat/[id]/page.tsx",
+    "app/(dashboard)/history/page.tsx",
+    "app/(dashboard)/documents/page.tsx",
+    "app/(dashboard)/resources/[id]/page.tsx",
+  ];
+
+  it("PageHeader est sans état et suit l'échelle du socle", () => {
+    const header = read("components/ui/page-header.tsx");
+    assert.match(header, /<h1 className=\{styles[.]pageHeaderTitle\}>/);
+    assert.ok(
+      !/useState|useEffect|onClick/.test(header),
+      "l'en-tête ne doit porter ni état ni action propre",
+    );
+    const ui = read("components/ui/ui.module.css");
+    for (const rule of [
+      "pageHeader",
+      "pageHeaderText",
+      "pageHeaderTitle",
+      "pageHeaderDescription",
+      "pageHeaderActions",
+    ]) {
+      assert.ok(ui.includes(`.${rule} {`), `règle .${rule} absente`);
+    }
+    assert.match(ui, /[.]pageHeader\s*\{[^}]*gap:\s*var\(--space-sm\)/);
+    assert.match(ui, /[.]pageHeaderTitle\s*\{[^}]*font-size:\s*var\(--fs-xl\)/);
+  });
+
+  it("chaque écran rend son h1 une seule fois, via PageHeader", () => {
+    for (const file of HEADER_SCREENS) {
+      const src = read(file);
+      assert.equal(
+        (src.match(/<PageHeader\b/g) ?? []).length,
+        1,
+        `${file} : PageHeader attendu exactement une fois`,
+      );
+      assert.match(src, /title=/, `${file} : titre manquant`);
+      assert.ok(!/<h1[\s>]/.test(src), `${file} : h1 rendu hors du composant partagé`);
+    }
+  });
+
+  it("les cartes ne portent plus le titre de page", () => {
+    assert.ok(
+      !read("components/search/search-client.tsx").includes("<CardTitle>"),
+      "/search : titre de page rendu dans la carte",
+    );
+    assert.ok(
+      !read("app/(dashboard)/history/page.tsx").includes("<CardTitle>Historique<"),
+      "/history : titre de page rendu dans la carte",
+    );
+    const fiche = read("app/(dashboard)/resources/[id]/page.tsx");
+    assert.match(fiche, /<PageHeader\s+title=\{resource[.]title\}/, "titre du document dans l'en-tête");
+    assert.ok(!fiche.includes("<CardTitle>{resource.title}</CardTitle>"), "titre dupliqué carte + en-tête");
+    // Le titre de section reste un h2 : le composant CardTitle existe toujours.
+    assert.match(read("components/ui/card.tsx"), /<h2 className=\{styles[.]cardTitle\}>/);
+  });
+
+  it("/documents ne propose plus de raccourci vers l'accueil ni de recette locale", () => {
+    const documents = read("app/(dashboard)/documents/page.tsx");
+    assert.ok(!documents.includes("Accueil"), "lien « ← Accueil » résiduel");
+    assert.ok(!documents.includes("buttonClass"), "recette de bouton locale");
+    assert.ok(!documents.includes('from "next/link"'), "import Link devenu inutilisé");
+    assert.ok(!documents.includes("dashboardStyles.brand"), "ancien style de marque");
+    assert.ok(!documents.includes("<h1"), "h1 rendu hors de PageHeader");
+  });
+
+  it("le titre de page ne dépend plus de dashboard.module.css", () => {
+    const css = read("components/dashboard/dashboard.module.css");
+    assert.ok(!/[.]brand\s*\{/.test(css), "règle .brand orpheline");
+    assert.ok(!/[.]header\s*\{/.test(css), "règle .header orpheline");
+    for (const file of HEADER_SCREENS) {
+      assert.ok(!read(file).includes("dashboardStyles.brand"), `${file} : style de marque résiduel`);
+    }
+  });
+
+  it("un seul séparateur de métadonnées : le point médian", () => {
+    const search = read("components/search/search-client.tsx");
+    assert.ok(!search.includes(" - "), "tiret simple dans les métadonnées de résultat");
+    assert.match(search, / · texte/);
+    assert.match(
+      read("app/(dashboard)/resources/[id]/page.tsx"),
+      /\{resource[.]category\} · \{resource[.]status\}/,
+    );
   });
 });
 

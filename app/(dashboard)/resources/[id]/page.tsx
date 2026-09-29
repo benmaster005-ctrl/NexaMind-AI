@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getNavItems } from "@/lib/dashboard/helpers";
 import { Card, CardTitle } from "@/components/ui/card";
+import PageHeader from "@/components/ui/page-header";
 import AppNav from "@/components/ui/app-nav";
 import { READY_STATUS } from "@/lib/ai/summary";
 import { buildDocumentView, formatChunkPosition } from "@/lib/resources/view";
@@ -102,8 +103,12 @@ export default async function ResourceFichePage({
   return (
     <div className={dashboardStyles.page}>
       <div className={dashboardStyles.inner}>
+        <PageHeader
+          title={resource.title}
+          description="Document partagé — le contenu est indexé et citable depuis la recherche et l’assistant."
+        />
+
         <Card aria-label="Document">
-          <CardTitle>{resource.title}</CardTitle>
           <p className={styles.meta}>
             {resource.category} · {resource.status} ·{" "}
             {new Date(resource.created_at).toLocaleDateString("fr-FR", {

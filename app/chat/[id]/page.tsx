@@ -6,6 +6,7 @@ import { getNavItems } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
 import ChatClient from "@/components/chat/chat-client";
+import PageHeader from "@/components/ui/page-header";
 import { rowsToInitialMessages } from "@/lib/chat/conversations";
 
 export const metadata: Metadata = {
@@ -58,6 +59,10 @@ export default async function ChatConversationPage({
   return (
     <div className={dashboardStyles.page}>
       <div className={dashboardStyles.inner}>
+        <PageHeader
+          title="Assistant"
+          description="Posez vos questions : les réponses s’appuient sur vos documents internes, avec citations."
+        />
         <ChatClient initialMessages={initialMessages} conversationId={id} />
         <AppNav items={navItems} active="/chat" />
       </div>

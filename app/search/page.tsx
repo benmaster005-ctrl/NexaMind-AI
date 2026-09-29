@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getNavItems } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
+import PageHeader from "@/components/ui/page-header";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
 import SearchClient from "@/components/search/search-client";
 import { listSearchHistory } from "@/lib/search/history-store";
@@ -47,6 +48,10 @@ export default async function SearchPage({
   return (
     <div className={dashboardStyles.page}>
       <div className={dashboardStyles.inner}>
+        <PageHeader
+          title="Recherche"
+          description="Interrogez le fonds documentaire : les résultats proviennent des documents réellement indexés, avec l’extrait correspondant."
+        />
         <SearchClient
           initialCategory={initialCategory}
           initialQuery={initialQuery}

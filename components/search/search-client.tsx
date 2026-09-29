@@ -20,7 +20,7 @@ import {
   highlightParts,
   truncateExcerpt,
 } from "@/lib/search/ui";
-import { Card, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import styles from "./search.module.css";
 
 export interface ApiSearchResult {
@@ -130,7 +130,6 @@ export default function SearchClient({
 
   return (
     <Card aria-label="Recherche documentaire">
-      <CardTitle>Recherche</CardTitle>
       <form
         role="search"
         className={styles.form}
@@ -258,8 +257,8 @@ export default function SearchClient({
                   <span className={styles.title}>{r.title}</span>
                   <span className={styles.meta}>
                     {r.category}
-                    {r.createdAt ? ` - ${new Date(r.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}` : ""}
-                    {r.matchKind === "text" ? " - texte" : ""}
+                    {r.createdAt ? ` · ${new Date(r.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                    {r.matchKind === "text" ? " · texte" : ""}
                   </span>
                   <span className={styles.excerpt}>
                     {highlightParts(truncateExcerpt(r.excerpt), query.trim()).map((part, i) =>

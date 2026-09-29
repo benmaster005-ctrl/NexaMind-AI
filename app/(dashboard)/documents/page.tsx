@@ -1,11 +1,9 @@
-﻿import Link from "next/link";
-
-import { createClient } from "@/lib/supabase/server";
+﻿import { createClient } from "@/lib/supabase/server";
 import { getNavItems } from "@/lib/dashboard/helpers";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
 import AppNav from "@/components/ui/app-nav";
-import { buttonClass } from "@/components/ui/button";
+import PageHeader from "@/components/ui/page-header";
 import ResourceItem from "@/components/resources/resource-item";
 import UploadForm from "@/components/resources/upload-form";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
@@ -65,15 +63,11 @@ export default async function DocumentsPage() {
     <div className={dashboardStyles.page}>
       <AppNav items={getNavItems()} active="/documents" />
       <div className={dashboardStyles.inner}>
-        <header className={dashboardStyles.header}>
-          <h1 className={dashboardStyles.brand}>
-            Gérer les documents
-            <Badge>Partage</Badge>
-          </h1>
-          <Link className={buttonClass("ghost")} href="/">
-            ← Accueil
-          </Link>
-        </header>
+        <PageHeader
+          title="Documents"
+          description="Déposez, organisez et retirez les documents qui alimentent les réponses de l’assistant."
+          actions={<Badge>Partagé</Badge>}
+        />
 
         <Card aria-label="Déposer">
           <CardTitle>

@@ -4,6 +4,7 @@ import { getNavItems } from "@/lib/dashboard/helpers";
 import AppNav from "@/components/ui/app-nav";
 import dashboardStyles from "@/components/dashboard/dashboard.module.css";
 import ChatClient from "@/components/chat/chat-client";
+import PageHeader from "@/components/ui/page-header";
 
 export const metadata: Metadata = {
   title: "Assistant — NexaMind AI",
@@ -34,6 +35,10 @@ export default async function ChatPage({
   return (
     <div className={dashboardStyles.page}>
       <div className={dashboardStyles.inner}>
+        <PageHeader
+          title="Assistant"
+          description="Posez vos questions : les réponses s’appuient sur vos documents internes, avec citations."
+        />
         <ChatClient initialQuestion={initialQuestion} />
         <AppNav items={navItems} active="/chat" />
       </div>

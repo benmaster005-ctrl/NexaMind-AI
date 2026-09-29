@@ -306,3 +306,45 @@
     background: var(--surface-sunken);
   }
 }
+
+/* --- En-tete de page (story 7.3) ---------------------------------------- */
+/* Un seul h1 par ecran. La description porte l'usage de l'ecran ; les actions
+   restent alignees a droite et passent a la ligne quand la largeur manque,
+   sans jamais provoquer de debordement horizontal.                        */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.pageHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.pageHeaderTitle {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.pageHeaderDescription {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.pageHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}

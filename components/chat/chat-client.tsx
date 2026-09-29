@@ -338,12 +338,6 @@ export default function ChatClient({
 
   return (
     <section className={styles.screen} aria-label="Assistant conversationnel">
-      <header className={styles.header}>
-        <h1 className={styles.title}>Assistant</h1>
-        <p className={styles.subtitle}>
-          Réponses fondées sur les documents internes — avec citations.
-        </p>
-      </header>
 
       <div className={styles.thread} ref={threadRef} role="log" aria-live="polite" aria-label="Fil de discussion">
         {messages.length === 0 ? (
