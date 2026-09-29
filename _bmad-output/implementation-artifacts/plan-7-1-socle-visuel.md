@@ -3,7 +3,7 @@ title: 'Story 7.1 — Socle visuel : tokens, thème sombre, primitives et shell'
 type: 'feature'
 ticket: '7.1'
 created: '2026-09-27'
-status: 'draft'
+status: 'built'
 route: 'full'
 route_source: 'auto'
 review: ''
@@ -75,6 +75,21 @@ context: []
 
 ## Implementation Notes
 
+Livre le 2026-09-29. Ce qui a reellement ete construit :
+
+- `app/globals.css` : 47 tokens (clair + bloc `prefers-color-scheme: dark`), pile `system-ui`, corps 16px, anneau de focus unique, `::selection`, `prefers-reduced-motion`. Source unique : **plus aucune couleur de charte dans un module** (verifie par grep sur `app/**/*.css` et `components/**/*.css`).
+- `components/ui/` : `button.tsx` (4 roles : primaire, secondaire, danger, fantome), `card.tsx`, `badge.tsx`, `empty-state.tsx`, `icon.tsx` (icones SVG au trait, `currentColor`, `aria-hidden`), `app-nav.tsx` — deux presentations : `sidebar` 260px desktop / barre basse 64px mobile, et `topbar` 64px (tableau de bord).
+- Les 7 pages branchent `<AppNav>` ; emoji supprimes ; aucun style inline dans les pages.
+- `scripts/ui-system.test.ts` : audit statique du socle (tokens declares une fois, bascule sombre, icones sobres, primitives reellement consommees, hygiene du shell, tableau de bord).
+
+Ecarts au plan, documentes dans `deferred-work.md` :
+
+- La **pastille de statut d'ingestion** (DESIGN.md 5) reste differee : elle appartient a la liste de gestion, son premier consommateur (story 7.5).
+- Trois **styles inline** subsistent dans `components/chat/chat-client.tsx` (composant client, hors du perimetre « pages » de l'audit) : story 7.6.
+- L'echelle d'espacement et les rayons de plusieurs modules restent en valeurs litterales (couleurs uniquement migrees par ce lot) : stories 7.5 a 7.9.
+
+Evolution posterieure au plan, meme socle : **refonte du tableau de bord** (2026-09-29) — en-tete horizontal, marque geometrique, recherche unique, trois colonnes de donnees reelles (commit `c1f4172`).
+
 ## Plan Change Log
 
 ## Review Triage Log
@@ -106,3 +121,16 @@ context: []
 | NO_JS | JavaScript désactivé | Tokens, thème et icônes fonctionnent (CSS seul) | Aucun |
 
 </frozen-after-approval>
+
+## Resultats de verification (2026-09-29)
+
+**Commandes reellement executees :**
+
+| Commande | Resultat |
+|----------|----------|
+| `npm test` | **293/293 verts, 69 suites** — dont `test:ui-system` et `test:dashboard` (assertions etendues par la refonte du tableau de bord) |
+| `npm run lint` | **0 erreur, 0 avertissement** |
+
+**Non execute a cette date (a rejouer dans la story 7.10) :** `npm run typecheck`, `npm run build`, `npm run validate:mvp-live`, `npm run validate:chat-live` — les deux dernieres exigent un serveur de developpement et un compte reel.
+
+**Controles manuels :** **non realises**. Aucun navigateur n'est disponible dans l'environnement de l'agent. Le theme sombre est garanti par construction (tokens + `prefers-color-scheme`) et couvert par l'audit statique, mais le rendu visuel et le contraste reel restent a confirmer cote humain.

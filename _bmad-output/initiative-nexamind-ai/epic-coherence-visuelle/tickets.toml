@@ -24,3 +24,225 @@ edge_cases_and_errors = """
 - Contraste : les couples texte/fond doivent rester lisibles en clair comme en sombre (vérification manuelle sur les titres, métadonnées et boutons).
 - Navigation : le libellé et l'état actif restent accessibles (aria-current, cible tactile 44px) après remplacement des icônes.
 """
+
+[[entry]]
+id = 2
+type = "story"
+title = "Finitions du socle visuel : police systeme, icone de fermeture, pastille de statut, echelle d'espacement"
+description = """
+Fermer les ecarts residuels du lot 1 : retirer les polices Geist chargees mais jamais
+consommees, ajouter l'icone de fermeture au jeu SVG du socle, doter la pastille d'une
+variante semantique (succes / alerte / erreur) dans les tokens deja declares, et ramener
+les espacements, rayons et tailles de police litteraux des modules anciens sur
+l'echelle de DESIGN.md. Etendre l'audit statique du socle.
+"""
+covers = []
+prerequisites = "Story 7.1 livree (tokens et primitives en place)"
+acceptance_criteria = """
+- `app/layout.tsx` ne charge plus aucune police externe : la pile `--font-sans` de `globals.css` (system-ui, DESIGN.md 3) est la seule utilisee ; aucune variable `--font-geist-*` ne subsiste.
+- `components/ui/icon.tsx` expose une icone `close`, inscrite dans `IconName` (`lib/dashboard/helpers.ts`).
+- `Badge` accepte une variante semantique (`success`, `warning`, `danger`) consommant `--warning-*` et `--danger-*` ; la variante par defaut reste neutre.
+- Les modules qui gardent des valeurs litterales pour ce que les tokens couvrent (`resource-item`, `upload-form`, `auth`, `search`, `search-history-list`, `history`) consomment `--space-*`, `--radius-*` et `--fs-*`.
+- `npm run test:ui-system` couvre ces invariants ; aucune couleur hors tokens, aucun emoji, aucun style inline dans les pages.
+"""
+edge_cases_and_errors = """
+- Retirer la police ne doit rien changer au rendu : la pile system-ui est deja celle consommee par `body` (effet visuel a confirmer cote humain).
+- Aucun token nouveau pour un cas isole : une valeur qui ne correspond a aucune echelle est ramenee a la valeur d'echelle la plus proche.
+"""
+
+[[entry]]
+id = 3
+type = "story"
+title = "En-tete et navigation harmonises : un seul h1 par ecran, fin des doublons de navigation"
+description = """
+Introduire un en-tete de page unique (titre, description, actions) et l'appliquer a
+`/search`, `/chat`, `/history`, `/documents` et `/resources/[id]`. Supprimer le lien de
+retour « Accueil » de l'espace documentaire (la navigation le couvre deja), cesser
+d'utiliser la classe de marque comme style de titre de page, et unifier les separateurs
+de metadonnees.
+"""
+covers = []
+prerequisites = "Story 7.2 (primitives du socle finalisees)"
+acceptance_criteria = """
+- Chaque ecran applicatif rend exactement un `h1` via le composant d'en-tete ; `/search` et `/history` n'utilisent plus `CardTitle` comme titre de page.
+- L'en-tete de `/documents` ne contient plus de lien vers `/`.
+- Le style de titre de page ne depend plus de `dashboard.module.css .brand`.
+- Un seul caractere separateur de metadonnees (`·`) sur tous les ecrans.
+- Les libelles et routes de navigation sont inchanges ; `test:dashboard`, `test:chat-ui`, `test:search-ui`, `test:ui-system` restent verts.
+"""
+edge_cases_and_errors = """
+- Ecran etroit (375px) : l'en-tete passe sur deux lignes sans debordement horizontal ni chevauchement avec les actions.
+- Les tests existants verrouillent des libelles de navigation : tout renommage est une decision a part entiere.
+"""
+
+[[entry]]
+id = 4
+type = "story"
+title = "Tableau de bord : finalisation (etats, accessibilite, densite des raccourcis)"
+description = """
+Finaliser le tableau de bord livre le 2026-09-29 (commit c1f4172) : verifier les etats
+(vide, degradee, chargement), l'accessibilite (labels, ordre de tabulation, cibles 44px)
+et la densite des raccourcis selon l'arbitrage produit retenu.
+"""
+covers = ["FR-4"]
+prerequisites = "Story 7.3 (en-tete harmonise)"
+acceptance_criteria = """
+- Les trois colonnes affichent des donnees reelles ou un etat vide explicite ; une lecture en echec degrade la colonne concernee, jamais la page entiere.
+- La barre de recherche soumet par bouton et par clavier, sans JavaScript requis (GET /search).
+- Le composeur transmet la question a `/chat?q=` sans nouvel appel reseau.
+- Aucun compteur invente : le nombre de documents prets vient de la base ; en cas d'echec de lecture, le chiffre disparait au lieu d'afficher zero.
+- Cibles tactiles >= 44px sur les onglets, les raccourcis et la zone de compte.
+"""
+edge_cases_and_errors = """
+- Titres longs : ils restent consultables sans casser la grille.
+- Densite des raccourcis : decision produit G-3 (quatre cartes d'action ou raccourcis compacts).
+"""
+
+[[entry]]
+id = 5
+type = "story"
+title = "Gestion documentaire : bibliotheque professionnelle, pastille de statut, confirmation accessible"
+description = """
+Remplacer l'empilement de cartes repetitives par une liste structuree responsive (rangee
+sur grand ecran, carte sur mobile) : titre, type, categorie, etiquettes, date, pastille de
+statut et actions. Ajouter un filtre client (categorie, statut), un compteur exact, et
+extraire le dialogue de suppression en primitive accessible. Le pipeline d'upload, de
+stockage et d'ingestion n'est pas modifie.
+"""
+covers = ["FR-5", "FR-7"]
+prerequisites = "Stories 7.2 et 7.3 (primitives et en-tete)"
+acceptance_criteria = """
+- Depot inchange : PDF, DOCX, TXT, MD, 4 Mo, categories fermees ; memes regles et memes messages (`lib/resources/validation.ts` et `next.config.ts` non modifies).
+- La liste affiche le type deduit du chemin de stockage, la categorie, les etiquettes, la date et une pastille de statut (Prete / En cours / Echec) issue des tokens semantiques.
+- Le compteur affiche le nombre reel de ressources (requete de comptage exact), jamais la taille de la page.
+- La suppression demande une confirmation explicite, fermable au clavier (Echap) et par « Annuler » ; le texte conserve l'avertissement sur le fichier, les morceaux vectoriels et la fiche.
+- Modification des metadonnees inchangee, avec retour visuel et gestion d'erreur reseau.
+- Aucune nouvelle politique de suppression, aucun partage, aucun dossier.
+"""
+edge_cases_and_errors = """
+- Plus de 50 ressources : l'interface doit soit paginer, soit annoncer clairement la limite (decision G-4) ; en aucun cas afficher un total faux.
+- Ecran etroit : aucun debordement horizontal ; les actions restent accessibles sans survol.
+- Ingestion en echec : le message d'erreur du document reste visible.
+"""
+
+[[entry]]
+id = 6
+type = "story"
+title = "Assistant : accueil soigne, composer ancre, tiroir de citation accessible"
+description = """
+Faire de l'assistant un veritable espace de conversation : etat d'accueil avec titre,
+explication courte et questions d'exemple coherentes avec les categories reelles ; bulles
+nettement distinguees ; composer ancre en bas utilisant les icones du socle ; tiroir de
+citation extrait en primitive accessible (Echap, focus, verrouillage du defilement). Le
+modele, les prompts, le pipeline RAG et le contrat de flux sont inchanges.
+"""
+covers = ["FR-10", "FR-11", "FR-12"]
+prerequisites = "Story 7.2 (icones et primitives)"
+acceptance_criteria = """
+- Etat initial : titre, explication et au moins deux questions d'exemple, chacune soumise via le flux existant ; aucune question inventee sur un contenu inexistant.
+- Le composer reste accessible en bas, ne masque aucun message, grandit de 1 a 4 lignes, envoie a Entree (Maj+Entree = saut de ligne).
+- Les bulles utilisateur et assistant restent distinguees ; l'abstention reste immediatement identifiable et jamais masquee (DESIGN.md 6).
+- Le bouton d'envoi et la fermeture du tiroir utilisent les icones du socle ; `chat-client.tsx` ne contient plus aucun style inline.
+- `lib/ai/**`, `app/api/chat/route.ts`, les prompts, le seuil, le modele et le contrat NDJSON sont inchanges.
+"""
+edge_cases_and_errors = """
+- Erreur reseau : la saisie est conservee et un reessai est possible sans recharger la page.
+- Le tiroir de citation est fermable au clavier (Echap) et ne laisse pas le focus derriere le voile.
+- Reponse vide du modele : le comportement actuel (message explicite, jamais de bulle blanche) est conserve.
+"""
+
+[[entry]]
+id = 7
+type = "story"
+title = "Recherche : en-tete, filtres lisibles, categorie restituee dans l'URL"
+description = """
+Renforcer l'ecran de recherche : en-tete de page, barre en haut avec largeur adaptee,
+filtres de categorie lisibles sur ecran etroit avec etat actif annonce, categorie active
+restituee dans l'URL, icone du socle pour la suppression d'une recherche, separateurs de
+metadonnees unifies. Le moteur et la route de recherche sont inchanges.
+"""
+covers = ["FR-8", "FR-9", "FR-16"]
+prerequisites = "Stories 7.2 et 7.3 (primitives et en-tete)"
+acceptance_criteria = """
+- La soumission existante est preservee (debounce, seuil, limite, route `/api/search` inchanges).
+- Les filtres correspondent aux valeurs reelles (`RESOURCE_CATEGORIES` + « Tous ») ; l'etat actif est identifiable visuellement et annonce (`aria-pressed`).
+- La categorie active est restituee dans l'URL et restauree au chargement, sans rechargement complet.
+- Resultats : titre, categorie, date, extrait reel surligne, lien vers la ressource au passage cite ; aucun extrait fabrique.
+- Recherche vide : message utile et invitation a reformuler ; erreur reseau : reessai sans perte de saisie.
+- Recherches recentes compactes, avec nombre reel de resultats, rejeu en un clic et suppression accessible.
+"""
+edge_cases_and_errors = """
+- Ecran 375px : les filtres ne provoquent aucun debordement horizontal de la page.
+- Retour depuis une fiche document : la requete et le filtre sont restitues.
+- Migration 0007 absente : l'ecran continue de fonctionner sans historique.
+"""
+
+[[entry]]
+id = 8
+type = "story"
+title = "Historique : onglets Conversations / Recherches, regroupement chronologique"
+description = """
+Separer clairement les deux ensembles de donnees presents sur `/history`
+(conversations et recherches) au moyen d'onglets rendus par des liens (donc sans
+JavaScript), regrouper chronologiquement, afficher les compteurs reels et des etats
+vides distincts. Les donnees et les permissions ne changent pas.
+"""
+covers = ["FR-15", "FR-16"]
+prerequisites = "Story 7.3 (en-tete harmonise)"
+acceptance_criteria = """
+- Deux ensembles distincts (Conversations / Recherches) avec un onglet actif visible et accessible ; aucune entite de donnees fusionnee.
+- Chaque conversation affiche son titre complet, sa date et son nombre reel d'echanges ; chaque recherche affiche sa requete, son nombre reel de resultats et permet le rejeu.
+- Regroupement chronologique lisible (Aujourd'hui / Hier / date) issu de `created_at`.
+- Etats vides distincts et explicites pour les deux ensembles.
+- Acces strictement personnel : aucune modification de RLS ni d'`owner_id`.
+"""
+edge_cases_and_errors = """
+- Une conversation reprise reste datee de sa creation tant que la migration `updated_at` n'est pas validee (decision G-5 ; migration 0010).
+- Titres longs : consultables sans casser la mise en page.
+"""
+
+[[entry]]
+id = 9
+type = "story"
+title = "Authentification : application du socle aux ecrans /login et /register"
+description = """
+Appliquer les primitives et les tokens du socle aux deux ecrans d'authentification
+(recette de bouton unique, echelle d'espacement et de rayons) sans modifier le
+comportement : inscription, connexion, messages d'erreur discrets, redirections,
+sessions et anti-force brute restent identiques.
+"""
+covers = ["FR-1", "FR-2"]
+prerequisites = "Story 7.2 (primitives du socle finalisees)"
+acceptance_criteria = """
+- `/login` et `/register` consomment les primitives du socle ; plus aucune recette de bouton locale.
+- Comportement inchange : memes actions, memes messages (sans reveler l'existence d'un e-mail), memes redirections, meme verrou anti-force brute.
+- Aucune modification de `lib/auth/**`, `lib/supabase/**`, `proxy.ts` ni des politiques RLS.
+- Champs >= 48px et police 16px (pas de zoom automatique), focus visible unique.
+"""
+edge_cases_and_errors = """
+- Ecran 375px : la carte reste centree et lisible, sans debordement.
+- Message d'erreur long : il ne casse pas la mise en page de la carte.
+"""
+
+[[entry]]
+id = 10
+type = "story"
+title = "Non-regression et livraison : porte de qualite, revue, rapport"
+description = """
+Rejouer la porte de qualite complete, etendre les audits statiques a chaque ecart
+corrige, effectuer la revue BMAD et produire le rapport de livraison (resume, fichiers
+modifies, tests reellement executes, limites, variables et migrations, instructions de
+deploiement). Aucun deploiement automatique en production.
+"""
+covers = []
+prerequisites = "Stories 7.4 a 7.9 livrees"
+acceptance_criteria = """
+- `npm test`, `npm run lint`, `npm run typecheck` et `npm run build` verts.
+- Chaque story livree laisse au moins un invariant couvert par un audit statique.
+- `npm run validate:mvp-live` et `npm run validate:chat-live` rejoues si un serveur de developpement et un compte reel sont disponibles ; sinon, le rapport indique explicitement qu'ils ne l'ont pas ete.
+- Rapport de livraison complet et verifiable, aucun secret ajoute, arbre git propre.
+"""
+edge_cases_and_errors = """
+- Une regression non expliquee d'une story precedente suspend la livraison : pas de refonte structurelle supplementaire tant qu'elle n'est pas resolue.
+- Un test impossible a executer est declare comme tel, jamais presente comme vert.
+"""

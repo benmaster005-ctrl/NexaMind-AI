@@ -59,6 +59,27 @@ sont couvertes, plus les ecarts de l'epic 6 (consultation et passage cite).
   `meta`), mais le lien « Ouvrir dans le document » mene a une 404 au lieu
   d'afficher « source retiree ».
 
+## Addendum du 2026-09-29 — perimetre partiellement perime
+
+Ce rapport reste **exact pour sa date** (2026-09-27) : il n'est pas reecrit. Deux
+changements posterieurs rendent son perimetre partiellement obsolete, sans
+invalider ses constats fonctionnels :
+
+1. **Gestion des roles supprimee** (commit `376d3b2`). La ligne FR-4
+   (« Tableau de bord conditionne au role ») et la mention du « compte
+   administrateur » ne decrivent plus l'application : **tout compte authentifie**
+   accede a tout, y compris au depot documentaire.
+2. **`/admin/resources` devenu `/documents`.** La route d'administration
+   n'existe plus ; le libelle de l'epic 7 et les entrees `deferred-work.md` des
+   lots 3 et 4 sont corriges en consequence.
+3. **Refonte du tableau de bord** (2026-09-29, commit `c1f4172`) : l'ecran
+   d'accueil ne correspond plus a la description de ce rapport.
+
+**Non rejoue a ce jour :** `npm run validate:mvp-live` (56/56) et
+`npm run validate:chat-live` (14/14) n'ont pas ete rejoues apres ces trois
+changements : ils exigent un serveur de developpement et un compte reel. La
+revalidation est planifiee dans la story 7.10 (voir `deferred-work.md`).
+
 ## Effets de bord de la validation
 
 - Une ressource temporaire « Validation MVP <horodatage » est deposee, ingeree,
