@@ -102,6 +102,29 @@
   vertical-align: middle;
 }
 
+/* --- Pastille semantique (story 7.2) ------------------------------------ */
+/* La couleur n'apparait que lorsqu'elle porte un sens : etat d'ingestion,
+   resultat d'operation. Jamais l'accent (reserve a l'action et a l'onglet
+   actif), jamais une teinte inventee : les trois variantes consomment les
+   tokens semantiques de la charte.                                          */
+.badgeSuccess {
+  color: var(--success-text);
+  background: var(--success-subtle);
+  border-color: var(--success-border);
+}
+
+.badgeWarning {
+  color: var(--warning-text);
+  background: var(--warning-subtle);
+  border-color: var(--warning-border);
+}
+
+.badgeDanger {
+  color: var(--danger-text);
+  background: var(--danger-subtle);
+  border-color: var(--danger-border);
+}
+
 /* --- Etat vide --------------------------------------------------------- */
 .empty {
   margin: 0;

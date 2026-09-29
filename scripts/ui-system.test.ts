@@ -536,3 +536,99 @@ describe("tableau de bord refonde (2026-09-29)", () => {
   });
 });
 
+describe("finitions du socle (story 7.2)", () => {
+  it("aucune police externe : la pile system-ui de la charte est la seule", () => {
+    // Le commentaire de ce fichier cite volontairement `next/font` (il explique
+    // le retrait) : l'audit ne porte donc que sur le code.
+    const layout = read("app/layout.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    assert.ok(!/next\/font/.test(layout), "layout.tsx charge encore une police");
+    assert.ok(!/Geist|--font-geist/.test(layout), "police du template Next encore posee");
+    for (const file of MODULES) {
+      assert.ok(!/--font-geist/.test(read(file)), `${file} consomme une police inexistante`);
+    }
+  });
+
+  it("une icone de fermeture partagee, declaree dans IconName", () => {
+    assert.match(read("lib/dashboard/helpers.ts"), /\| "close"\r?\n/);
+    const icon = read("components/ui/icon.tsx");
+    assert.match(icon, /Record<IconName, string>/, "le jeu d'icones doit rester complet");
+    assert.match(icon, /\r?\n  close: "/, "icone de fermeture absente");
+  });
+
+  it("pastille semantique : la couleur ne sort que lorsqu'elle porte un sens", () => {
+    const ui = read("components/ui/ui.module.css");
+    for (const variant of ["Success", "Warning", "Danger"]) {
+      assert.ok(ui.includes(`.badge${variant} {`), `variante ${variant} absente`);
+    }
+    assert.match(read("components/ui/badge.tsx"), /variant\?: BadgeVariant;/);
+    assert.match(ui, /[.]badgeSuccess\s*\{[\s\S]*?var\(--success-text\)/);
+    assert.match(ui, /[.]badgeWarning\s*\{[\s\S]*?var\(--warning-text\)/);
+    assert.match(ui, /[.]badgeDanger\s*\{[\s\S]*?var\(--danger-text\)/);
+    // L'accent reste reserve a l'action, meme en variante coloree.
+    const variants = /[.]badgeSuccess[\s\S]*$/.exec(ui)?.[0] ?? "";
+    assert.ok(!/var\(--primary/.test(variants), "une pastille reprend l'accent");
+  });
+
+  it("le succes dispose de ses tokens, en clair comme en sombre", () => {
+    const css = read("app/globals.css");
+    for (const token of ["--success-subtle", "--success-border", "--success-text"]) {
+      const hits = css.split(`${token}:`).length - 1;
+      assert.equal(hits, 2, `${token} : une valeur claire + une sombre attendues`);
+    }
+  });
+
+  // Une valeur litterale qui vaut exactement un token est une duplication : elle
+  // ne suivra pas une evolution de la charte. Les valeurs hors echelle de
+  // DESIGN.md (4px, 10px, 13px, 1rem de rayon) restent litterales : les tokens
+  // n'en inventent aucune.
+  it("aucune valeur litterale ne duplique un token (rayon, texte, espacement)", () => {
+    const RADIUS = {
+      "0.375rem": "--radius-sm",
+      "0.5rem": "--radius-md",
+      "0.75rem": "--radius-lg",
+      "9999px": "--radius-full",
+    };
+    const FONT = {
+      "0.75rem": "--fs-xs",
+      "0.8125rem": "--fs-sm",
+      "0.875rem": "--fs-sm",
+      "0.9375rem": "--fs-base",
+      "1rem": "--fs-base",
+      "1.125rem": "--fs-lg",
+      "1.25rem": "--fs-xl",
+      "1.5rem": "--fs-2xl",
+      "1.875rem": "--fs-3xl",
+    };
+    const SPACE = {
+      "0.5rem": "--space-xs",
+      "0.75rem": "--space-sm",
+      "1rem": "--space-md",
+      "1.5rem": "--space-lg",
+      "2rem": "--space-xl",
+      "2.5rem": "--space-2xl",
+      "3rem": "--space-3xl",
+    };
+    const SPACE_PROP = /^(padding|margin|gap|row-gap|column-gap)(-top|-right|-bottom|-left)?$/;
+
+    for (const file of MODULES) {
+      const css = read(file).replace(/\/\*[\s\S]*?\*\//g, "");
+      for (const decl of css.match(/(?:^|\n)\s*[a-z-]+\s*:\s*[^;{}]+;/g) ?? []) {
+        const [, prop = "", value = ""] = /^\s*([a-z-]+)\s*:\s*([^;]+);$/.exec(decl) ?? [];
+        const family = SPACE_PROP.test(prop)
+          ? SPACE
+          : prop === "border-radius"
+            ? RADIUS
+            : prop === "font-size"
+              ? FONT
+              : null;
+        if (!family) continue;
+        for (const literal of value.match(/-?\d*\.?\d+(?:rem|px)/g) ?? []) {
+          if (family[literal]) {
+            assert.fail(`${file} : ${prop}: ${literal} duplique ${family[literal]}`);
+          }
+        }
+      }
+    }
+  });
+});
+

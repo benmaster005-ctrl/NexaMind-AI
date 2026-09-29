@@ -19,6 +19,7 @@ export type IconName =
   | "file"
   | "logout"
   | "send"
+  | "close"
   | "arrow";
 
 export interface NavItem {

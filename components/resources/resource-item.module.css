@@ -5,8 +5,8 @@
 .item {
   list-style: none;
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
@@ -20,47 +20,47 @@
 
 .title {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text);
 }
 
 .meta {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-muted);
 }
 
 .tags {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
 }
 
 .degraded {
   margin: 0.25rem 0 0;
-  padding: 0.5rem 0.625rem;
-  font-size: 0.8125rem;
+  padding: var(--space-xs) 0.625rem;
+  font-size: var(--fs-sm);
   color: var(--warning-text);
   background: var(--warning-subtle);
   border: 1px solid var(--warning-border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .label {
-  font-size: 0.8125rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-secondary);
 }
@@ -68,67 +68,67 @@
 .input {
   width: 100%;
   min-height: 48px;
-  padding: 0.625rem 0.75rem;
-  font-size: 1rem;
+  padding: 0.625rem var(--space-sm);
+  font-size: var(--fs-base);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 .primary {
   min-height: 44px;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.875rem;
+  padding: var(--space-xs) 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--on-primary);
   background: var(--primary);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
 .secondary {
   min-height: 44px;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.875rem;
+  padding: var(--space-xs) 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
 .danger {
   min-height: 44px;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.875rem;
+  padding: var(--space-xs) 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--danger-text);
   background: var(--danger-subtle);
   border: 1px solid var(--danger-border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
 .error {
   margin: 0;
-  padding: 0.5rem 0.625rem;
-  font-size: 0.8125rem;
+  padding: var(--space-xs) 0.625rem;
+  font-size: var(--fs-sm);
   color: var(--danger-text);
   background: var(--danger-subtle);
   border: 1px solid var(--danger-border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .info {
   margin: 0;
-  padding: 0.5rem 0.625rem;
-  font-size: 0.8125rem;
+  padding: var(--space-xs) 0.625rem;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
   background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .overlay {
@@ -138,7 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--space-md);
   background: var(--scrim);
 }
 
@@ -146,22 +146,22 @@
   width: 100%;
   max-width: 28rem;
   background: var(--surface);
-  border-radius: 0.75rem;
-  padding: 1rem;
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-sm);
 }
 
 .dialogTitle {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--fs-base);
   font-weight: 600;
   color: var(--text);
 }
 
 .dialogText {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
 }

@@ -36,6 +36,9 @@
   --primary-soft: #bfdbfe;
 
   /* --- Semantique ----------------------------------------------------- */
+  --success-subtle: #ecfdf5; /* DESIGN.md 2 : semantic.success (#10B981) */
+  --success-border: #a7f3d0;
+  --success-text: #047857;
   --warning-subtle: #fef3c7;
   --warning-border: #fcd34d;
   --warning-text: #78350f;
@@ -104,6 +107,9 @@
     --primary-subtle-border: #1e40af;
     --primary-soft: #1e40af;
 
+    --success-subtle: #052e21;
+    --success-border: #065f46;
+    --success-text: #6ee7b7;
     --warning-subtle: #3b2f0b;
     --warning-border: #92600a;
     --warning-text: #fde68a;

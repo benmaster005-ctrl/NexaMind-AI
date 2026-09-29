@@ -25,6 +25,9 @@ const PATHS: Record<IconName, string> = {
   file: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8zm0 0v5h5",
   // Envoi : avion en papier, convention universelle du bouton « envoyer ».
   send: "M22 2 11 13M22 2 15 22 11 13 2 9 22 2Z",
+  // Fermeture : croix de 45 degres (tiroirs, dialogues). Remplace les glyphes
+  // texte « ✕ » qui ne suivaient ni l'epaisseur ni la couleur de l'icone.
+  close: "M6 6l12 12M18 6 6 18",
   // Suite logique : fleche vers la droite (appel a l'action des blocs).
   arrow: "M5 12h14M13 6l6 6-6 6",
   // Sortie de session : fleche vers une porte.

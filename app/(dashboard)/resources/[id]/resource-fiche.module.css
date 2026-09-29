@@ -1,24 +1,24 @@
 /** Fiche document — complement de dashboardStyles.card, meme typographie. */
 .meta {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
 }
 
 .tags {
-  margin: 0.5rem 0 0;
-  font-size: 0.8125rem;
+  margin: var(--space-xs) 0 0;
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
 }
 
 .notice {
   margin: 0.875rem 0 0;
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.625rem var(--space-sm);
+  font-size: var(--fs-sm);
   color: var(--warning-text);
   background: var(--warning-subtle);
   border: 1px solid var(--warning-border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .actions {
@@ -32,24 +32,24 @@
 .document {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
 }
 
 .passage {
-  padding: 0.75rem 0.875rem;
+  padding: var(--space-sm) 0.875rem;
   background: var(--surface-sunken);
   border: 1px solid var(--border);
   border-left: 4px solid var(--border-strong);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .passageActive {
-  padding: 0.75rem 0.875rem;
+  padding: var(--space-sm) 0.875rem;
   background: var(--primary-subtle);
   border: 1px solid var(--primary-subtle-border);
   border-left: 4px solid var(--primary);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .passageLabel {
@@ -62,20 +62,20 @@
 }
 
 .passageBadge {
-  margin-left: 0.5rem;
-  padding: 0.0625rem 0.5rem;
+  margin-left: var(--space-xs);
+  padding: 0.0625rem var(--space-xs);
   font-weight: 700;
   color: var(--text-secondary);
   background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   text-transform: none;
   letter-spacing: 0;
 }
 
 .passageText {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: var(--fs-base);
   line-height: 1.6;
   color: var(--text);
   white-space: pre-wrap;
@@ -86,8 +86,8 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
+  margin-top: var(--space-xs);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--primary-hover);
   text-decoration: none;

@@ -9,31 +9,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: var(--space-md);
   background: var(--bg-page);
 }
 
 .card {
   width: 100%;
   max-width: 400px;
-  padding: 1.5rem;
+  padding: var(--space-lg);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
 
 .title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--text);
   text-align: center;
 }
 
 .subtitle {
-  margin: 0.5rem 0 1.25rem;
-  font-size: 0.875rem;
+  margin: var(--space-xs) 0 1.25rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-align: center;
 }
@@ -41,7 +41,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-sm);
 }
 
 .field {
@@ -51,7 +51,7 @@
 }
 
 .label {
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--text-secondary);
 }
@@ -59,12 +59,12 @@
 .input {
   width: 100%;
   min-height: 48px;
-  padding: 0.625rem 0.75rem;
-  font-size: 1rem;
+  padding: 0.625rem var(--space-sm);
+  font-size: var(--fs-base);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .input:focus {
@@ -75,34 +75,34 @@
 
 .error {
   margin: 0;
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.625rem var(--space-sm);
+  font-size: var(--fs-sm);
   color: var(--danger-text);
   background: var(--danger-subtle);
   border: 1px solid var(--danger-border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .info {
   margin: 0;
-  padding: 0.625rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.625rem var(--space-sm);
+  font-size: var(--fs-sm);
   color: var(--text-secondary);
   background: var(--surface-sunken);
   border: 1px solid var(--border);
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
 .submit {
   width: 100%;
   min-height: 48px;
   margin-top: 0.25rem;
-  font-size: 1rem;
+  font-size: var(--fs-base);
   font-weight: 600;
   color: var(--on-primary);
   background: var(--primary);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   cursor: pointer;
 }
 
@@ -117,7 +117,7 @@
 
 .switch {
   margin: 0.25rem 0 0;
-  font-size: 0.875rem;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   text-align: center;
 }
