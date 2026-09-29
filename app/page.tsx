@@ -1,17 +1,37 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 import { createClient } from "@/lib/supabase/server";
 import {
-  getNavItems,
+  getTopNavItems,
   formatRelativeDate,
+  formatHistoryStamp,
+  documentTypeLabel,
+  formatShortDate,
+  type IconName,
 } from "@/lib/dashboard/helpers";
+import { listSearchHistory } from "@/lib/search/history-store";
+import type { SearchHistoryItem } from "@/lib/search/history";
 import AppNav from "@/components/ui/app-nav";
 import { Badge } from "@/components/ui/badge";
 import { buttonClass } from "@/components/ui/button";
-import { Card, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
-import SignOutButton from "@/components/dashboard/signout-button";
-import styles from "@/components/dashboard/dashboard.module.css";
+import { READY_STATUS } from "@/lib/ai/summary";
+import Brand from "@/components/dashboard/brand";
+import UserBlock from "@/components/dashboard/user-block";
+import styles from "@/components/dashboard/dashboard-home.module.css";
+
+const RECENT_DOCUMENTS_LIMIT = 6;
+const RECENT_SEARCHES_LIMIT = 5;
+const RECENT_CONVERSATIONS_LIMIT = 4;
+
+interface ResourceRow {
+  id: string;
+  title: string;
+  category: string;
+  status: string;
+  storage_path: string | null;
+  created_at: string;
+}
 
 interface ConversationRow {
   id: string;
@@ -20,151 +40,332 @@ interface ConversationRow {
 }
 
 /**
- * Tableau de bord (story 1.4, FR-4) - Server Component.
- * Protege par le middleware 1.3 : ici l'utilisateur est connecte.
- * Requete Supabase en echec -> mode degrade, jamais d'ecran bloque.
+ * Les quatre entrees de l'accueil. Aucun bloc « Recherche » : la grande barre
+ * tient deja ce role, un doublon la rendrait ambigue.
+ */
+const ACTIONS: {
+  href: string;
+  icon: IconName;
+  title: string;
+  text: string;
+  cta: string;
+}[] = [
+  {
+    href: "/chat",
+    icon: "chat",
+    title: "Assistant",
+    text: "Posez une question à NexaMind et obtenez une réponse à partir des connaissances de l'entreprise.",
+    cta: "Commencer une conversation",
+  },
+  {
+    href: "/documents",
+    icon: "upload",
+    title: "Uploader une ressource",
+    text: "Ajoutez un document pour enrichir la base de connaissances.",
+    cta: "Ajouter une ressource",
+  },
+  {
+    href: "/documents",
+    icon: "documents",
+    title: "Documents",
+    text: "Consultez l'ensemble des documents de l'entreprise.",
+    cta: "Voir les documents",
+  },
+  {
+    href: "/history",
+    icon: "history",
+    title: "Historique de recherche",
+    text: "Retrouvez vos recherches précédentes.",
+    cta: "Voir l'historique",
+  },
+];
+
+/**
+ * Tableau de bord — point d'entree de la plateforme (FR-4, refonte 2026-09-29).
+ *
+ * Server Component : en-tete horizontal de 64px, titre fonctionnel, grande
+ * barre de recherche, quatre blocs d'action, puis trois colonnes de contenu
+ * reel (documents, recherches, conversations). Aucune salutation, aucune
+ * donnee fictive : chaque bloc lit la base via la RLS, et une lecture en echec
+ * degrade la colonne concernee — jamais la page entiere.
+ *
+ * Aucune API n'est ajoutee : la recherche est un GET vers /search?q=..., la
+ * question un GET vers /chat?q=... (composeur de l'assistant pre-rempli) et
+ * l'historique vient de `listSearchHistory`, deja utilise par /search.
  */
 export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   let readyCount: number | null = null;
-  let lastUpdate: string | null = null;
+  let documents: ResourceRow[] = [];
   let conversations: ConversationRow[] = [];
+  let searches: SearchHistoryItem[] = [];
   let degraded = false;
 
   try {
-    const supabase = await createClient();
-
-    const { count, error: countError } = await supabase
+    const { count, error } = await supabase
       .from("resources")
       .select("id", { count: "exact", head: true })
       // Statut stocke exactement ainsi par la contrainte CHECK 0001 : 'Prête'.
       .eq("status", "Prête");
-    if (countError) throw countError;
+    if (error) throw error;
     readyCount = count ?? 0;
-
-    const { data: latestResource } = await supabase
-      .from("resources")
-      .select("created_at")
-      .eq("status", "Prête")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    lastUpdate = latestResource?.created_at ?? null;
-
-    const { data: convs, error: convsError } = await supabase
-      .from("conversations")
-      .select("id, title, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    if (convsError) throw convsError;
-    conversations = (convs ?? []) as ConversationRow[];
   } catch {
     degraded = true;
   }
 
-  const navItems = getNavItems();
+  try {
+    const { data, error } = await supabase
+      .from("resources")
+      .select("id, title, category, status, storage_path, created_at")
+      .order("created_at", { ascending: false })
+      .limit(RECENT_DOCUMENTS_LIMIT);
+    if (error) throw error;
+    documents = (data ?? []) as ResourceRow[];
+  } catch {
+    degraded = true;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("conversations")
+      .select("id, title, created_at")
+      .order("created_at", { ascending: false })
+      .limit(RECENT_CONVERSATIONS_LIMIT);
+    if (error) throw error;
+    conversations = (data ?? []) as ConversationRow[];
+  } catch {
+    degraded = true;
+  }
+
+  try {
+    // Migration 0007 absente -> liste vide, aucun crash (meme contrat que /search).
+    searches = (await listSearchHistory({ client: supabase })).slice(
+      0,
+      RECENT_SEARCHES_LIMIT,
+    );
+  } catch {
+    searches = [];
+  }
 
   return (
     <div className={styles.page}>
-      <AppNav items={navItems} active="/" />
+      <AppNav
+        items={getTopNavItems()}
+        active="/"
+        variant="topbar"
+        brand={<Brand />}
+        actions={<UserBlock email={user?.email ?? ""} />}
+      />
 
-      <div className={styles.inner}>
-        <header className={styles.header}>
-          <h1 className={styles.brand}>
-            NexaMind AI
-            <Badge>Fonds partagé</Badge>
+      <main className={styles.inner}>
+        <section className={styles.intro}>
+          <h1 className={styles.title}>
+            Vos connaissances d’entreprise, à portée de main
           </h1>
-          <SignOutButton />
-        </header>
+          <p className={styles.subtitle}>
+            Retrouvez rapidement une information, consultez vos documents ou posez
+            une question.
+          </p>
+        </section>
 
-        <Card aria-label="Recherche rapide">
-          <CardTitle>Rechercher</CardTitle>
-          <Link className={styles.searchLink} href="/search">
-            <Icon name="search" className={styles.shortcutIcon} />
-            Poser une question ou rechercher un document...
-          </Link>
-        </Card>
+        {/* Recherche : GET vers /search?q=... — le rejeu existe deja, aucun
+            etat client, aucune nouvelle API. */}
+        <form className={styles.searchBar} role="search" action="/search">
+          <Icon name="search" className={styles.searchIcon} />
+          <label className={styles.visuallyHidden} htmlFor="dashboard-search">
+            Rechercher un document, une information ou un sujet
+          </label>
+          <input
+            className={styles.searchInput}
+            id="dashboard-search"
+            name="q"
+            type="search"
+            maxLength={500}
+            autoComplete="off"
+            placeholder="Rechercher un document, une information ou un sujet..."
+          />
+          <button type="submit" className={buttonClass("primary", styles.searchSubmit)}>
+            Rechercher
+          </button>
+        </form>
 
-        <Card aria-label="Ressources disponibles">
-          <CardTitle>Fonds documentaire</CardTitle>
-          {readyCount !== null ? (
-            <div className={styles.metric}>
-              <span className={styles.metricNumber}>{readyCount}</span>
-              <span className={styles.metricLabel}>
-                ressource{readyCount > 1 ? "s" : ""} prete
-                {readyCount > 1 ? "s" : ""}
+        <section className={styles.actions} aria-label="Actions principales">
+          {ACTIONS.map((action) => (
+            <Link key={action.title} className={styles.actionCard} href={action.href}>
+              <span className={styles.actionIcon}>
+                <Icon name={action.icon} className={styles.actionIconGlyph} />
               </span>
+              <h2 className={styles.actionTitle}>{action.title}</h2>
+              <p className={styles.actionText}>{action.text}</p>
+              <span className={styles.actionCta}>
+                {action.cta}
+                <Icon name="arrow" className={styles.actionArrow} />
+              </span>
+            </Link>
+          ))}
+        </section>
+
+        <div className={styles.columns}>
+          <section className={styles.panel} aria-label="Documents récents">
+            <header className={styles.panelHead}>
+              <h2 className={styles.panelTitle}>
+                Documents récents
+                {readyCount === null ? null : (
+                  <span className={styles.panelCount}>
+                    {" "}
+                    · {readyCount} prête{readyCount > 1 ? "s" : ""}
+                  </span>
+                )}
+              </h2>
+              <Link className={styles.seeAll} href="/documents">
+                Voir tout
+              </Link>
+            </header>
+            {documents.length > 0 ? (
+              <ul className={styles.list}>
+                {documents.map((doc) => {
+                  const type = documentTypeLabel(doc.storage_path);
+                  const date = formatShortDate(doc.created_at);
+                  // Indexation en cours ou en echec : seul cas ou l'etat
+                  // merite une pastille. Un document prete reste nu.
+                  const pending = doc.status !== READY_STATUS;
+                  return (
+                    <li key={doc.id}>
+                      <Link className={styles.row} href={`/resources/${doc.id}`}>
+                        <span className={styles.rowIcon}>
+                          <Icon name="file" className={styles.rowIconGlyph} />
+                        </span>
+                        <span className={styles.rowBody}>
+                          <span className={styles.rowTitle}>{doc.title}</span>
+                          <span className={styles.rowMeta}>
+                            {[type, doc.category, date && `ajouté le ${date}`]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        </span>
+                        {pending ? <Badge>{doc.status}</Badge> : null}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className={styles.empty}>
+                Aucun document pour le moment. Ajoutez une ressource pour alimenter
+                la base.
+              </p>
+            )}
+          </section>
+
+          <section className={styles.panel} aria-label="Historique de recherche">
+            <header className={styles.panelHead}>
+              <h2 className={styles.panelTitle}>Historique de recherche</h2>
+              <Link className={styles.seeAll} href="/history">
+                Voir tout
+              </Link>
+            </header>
+            {searches.length > 0 ? (
+              <ul className={styles.list}>
+                {searches.map((entry) => (
+                  <li key={entry.id}>
+                    <Link
+                      className={styles.row}
+                      href={`/search?q=${encodeURIComponent(entry.query)}`}
+                    >
+                      <Icon name="search" className={styles.rowGlyph} />
+                      <span className={styles.rowBody}>
+                        <span className={styles.rowTitle}>{entry.query}</span>
+                        <span className={styles.rowMeta}>
+                          {formatHistoryStamp(entry.createdAt)}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.empty}>
+                Vos recherches précédentes apparaîtront ici.
+              </p>
+            )}
+          </section>
+
+          <section className={styles.panel} aria-label="Démarrer une conversation">
+            <div className={styles.assistantHead}>
+              <h2 className={styles.assistantTitle}>Démarrer une conversation</h2>
+              <p className={styles.assistantText}>
+                Posez une question à NexaMind et obtenez une réponse à partir des
+                connaissances de l’entreprise.
+              </p>
             </div>
-          ) : null}
-          {lastUpdate ? (
-            <p className={styles.metricDate}>
-              Mis a jour le{" "}
-              {new Date(lastUpdate).toLocaleDateString("fr-FR", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          ) : null}
-          {degraded ? (
-            <p className={styles.degraded} role="status">
-              Donnees temporairement indisponibles - les raccourcis restent
-              accessibles.
-            </p>
-          ) : null}
-        </Card>
 
-        <Card aria-label="Raccourcis">
-          <CardTitle>Raccourcis</CardTitle>
-          <div className={styles.shortcuts}>
-            <Link className={styles.shortcut} href="/search">
-              <Icon name="search" className={styles.shortcutIcon} />
-              <span className={styles.shortcutLabel}>Recherche</span>
-              <span className={styles.shortcutHint}>Retrouver un document</span>
-            </Link>
-            <Link className={styles.shortcut} href="/chat">
-              <Icon name="chat" className={styles.shortcutIcon} />
-              <span className={styles.shortcutLabel}>Assistant</span>
-              <span className={styles.shortcutHint}>Poser une question</span>
-            </Link>
-          </div>
-        </Card>
+            {/* Reutilise l'assistant existant : la question arrive sur /chat,
+                ou le composeur est deja rempli. Aucun nouveau systeme. */}
+            <div className={styles.askArea}>
+              <form className={styles.askForm} action="/chat">
+                <label className={styles.visuallyHidden} htmlFor="dashboard-question">
+                  Posez votre question
+                </label>
+                <input
+                  className={styles.askInput}
+                  id="dashboard-question"
+                  name="q"
+                  type="text"
+                  maxLength={2000}
+                  autoComplete="off"
+                  placeholder="Posez votre question..."
+                />
+                <button type="submit" className={styles.askSubmit}>
+                  <Icon name="send" className={styles.askIcon} />
+                  <span className={styles.visuallyHidden}>Envoyer la question</span>
+                </button>
+              </form>
+            </div>
 
-        <Card aria-label="Documents">
-          <CardTitle>Documents</CardTitle>
-          <Link className={buttonClass("secondary")} href="/documents">
-            Déposer un document
-          </Link>
-        </Card>
+            <div className={styles.subhead}>
+              <h3 className={styles.subheadTitle}>Dernières conversations</h3>
+              <Link className={styles.seeAll} href="/history">
+                Voir tout
+              </Link>
+            </div>
 
-        <Card aria-label="Dernieres conversations">
-          <CardTitle>Dernieres conversations</CardTitle>
-          {conversations.length > 0 ? (
-            <ul className={styles.conversations}>
-              {conversations.map((conv) => (
-                <li key={conv.id}>
-                  <Link
-                    className={styles.conversationLink}
-                    href={`/chat/${conv.id}`}
-                  >
-                    <span className={styles.conversationTitle}>
-                      {conv.title}
-                    </span>
-                    <span className={styles.conversationDate}>
-                      {formatRelativeDate(conv.created_at)}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className={styles.empty}>
-              Aucune conversation pour le moment.{" "}
-              <Link href="/chat">Posez votre premiere question</Link> pour
-              demarrer.
-            </p>
-          )}
-        </Card>
-      </div>
+            {conversations.length > 0 ? (
+              <ul className={styles.list}>
+                {conversations.map((conv) => (
+                  <li key={conv.id}>
+                    <Link className={styles.row} href={`/chat/${conv.id}`}>
+                      <span className={styles.rowAvatar}>
+                        <Icon name="chat" className={styles.rowAvatarGlyph} />
+                      </span>
+                      <span className={styles.rowBody}>
+                        <span className={styles.rowTitle}>{conv.title}</span>
+                        <span className={styles.rowMeta}>
+                          {formatRelativeDate(conv.created_at)}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.empty}>
+                Aucune conversation pour le moment. Posez votre première question.
+              </p>
+            )}
+          </section>
+        </div>
+
+        {degraded ? (
+          <p className={styles.degraded} role="status">
+            Certaines données sont temporairement indisponibles — la recherche et
+            les actions restent accessibles.
+          </p>
+        ) : null}
+      </main>
     </div>
   );
 }

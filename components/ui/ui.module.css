@@ -165,6 +165,94 @@
   height: 20px;
 }
 
+/* --- En-tete horizontal (tableau de bord) -------------------------------- */
+/* Marque a gauche, onglets au centre, compte a droite, sur une seule ligne de
+   64px. Sans sidebar : le tableau de bord est un point d'entree, pas un poste
+   de travail. Onglets en libelles seuls — les icones y feraient doublon avec
+   celles des blocs d'action de la page.                                    */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 64px;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.topBrand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: auto;
+}
+
+.topNav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  /* Les cinq onglets restent joignables sur mobile, sans menu ni JavaScript. */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  order: 3;
+  width: 100%;
+}
+
+.topItem {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 var(--space-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.topItem:hover {
+  color: var(--text);
+  background: var(--surface-sunken);
+}
+
+.topItemActive {
+  color: var(--accent-text);
+  background: var(--surface-sunken);
+}
+
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .topbar {
+    flex-wrap: nowrap;
+    padding: 0 var(--space-3xl);
+  }
+
+  .topNav {
+    order: 0;
+    width: auto;
+    justify-content: center;
+    overflow-x: visible;
+    flex: 1 1 auto;
+  }
+
+  .topItem {
+    min-height: 40px;
+  }
+}
+
 @media (min-width: 768px) {
   .nav {
     top: 0;

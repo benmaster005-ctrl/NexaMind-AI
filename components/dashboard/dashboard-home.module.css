@@ -1,0 +1,564 @@
+/**
+ * Tableau de bord refonde (2026-09-29) — point d'entree de la plateforme.
+ *
+ * Enterprise et sobre, calque sur la maquette de reference : en-tete de 64px,
+ * titre discret, grande barre de recherche, quatre blocs d'action, puis trois
+ * colonnes de contenu reel. La structure est portee par des bordures fines sur
+ * fond blanc ; l'ombre reste un signal de survol, jamais un decor.
+ *
+ * Aucune couleur en dur : tout vient des tokens de `app/globals.css`, donc le
+ * theme sombre est automatique. Pas de gradient, pas de verre, pas d'ombre
+ * portee, aucun symbole d'intelligence artificielle — l'IA est une
+ * fonctionnalite du produit, pas son identite visuelle.
+ *
+ * Module distinct de `dashboard.module.css` (coquille des ecrans de travail,
+ * sidebar reservee) : le tableau de bord n'a ni sidebar ni barre basse.
+ *
+ * Noms de classes : aucun ne contient « button » ni « btn » — les recettes de
+ * boutons restent celles du socle (`components/ui/ui.module.css`).
+ */
+
+/* --- Coquille ------------------------------------------------------------- */
+/* Fond blanc : la maquette separe les zones par des bordures, pas par des
+   aplats. Les cartes se detachent donc par leur trait, pas par une ombre. */
+.page {
+  min-height: 100dvh;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.inner {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+/* --- Titre / explication -------------------------------------------------- */
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* --- Marque (en-tete) ---------------------------------------------------- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text);
+}
+
+.brandMark {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.brandName {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* --- Zone compte (en-tete) ----------------------------------------------- */
+/* Avatar, nom, deconnexion : la deconnexion reste un bouton visible, donc
+   atteignable en un clic (pas de menu a ouvrir). Separation par un filet. */
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-left: var(--space-md);
+  border-left: 1px solid var(--border);
+}
+
+.accountAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--accent-text);
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-subtle-border);
+  border-radius: var(--radius-full);
+}
+
+.accountName {
+  display: none;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.accountSignOut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.accountSignOut:hover {
+  color: var(--text);
+  background: var(--surface-sunken);
+}
+
+.accountSignOutIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* --- Recherche principale ------------------------------------------------- */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 0 var(--space-xs) 0 var(--space-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.searchBar:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-card), 0 0 0 1px var(--primary);
+}
+
+.searchIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.searchInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 56px;
+  padding: 0;
+  font-size: var(--fs-lg);
+  color: var(--text);
+  background: transparent;
+  border: none;
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchSubmit {
+  flex-shrink: 0;
+}
+
+/* --- Blocs d'action ------------------------------------------------------ */
+.actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+/* Toute la carte est cliquable : un seul arret de tabulation par action. */
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.actionCard:hover {
+  border-color: var(--primary-subtle-border);
+  box-shadow: var(--shadow-card);
+}
+
+.actionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--space-sm);
+  color: var(--accent-text);
+  background: var(--primary-subtle);
+  border-radius: var(--radius-md);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.actionCard:hover .actionIcon {
+  color: var(--on-primary);
+  background: var(--primary);
+}
+
+.actionIconGlyph {
+  width: 20px;
+  height: 20px;
+}
+
+.actionTitle {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--text);
+}
+
+.actionText {
+  flex: 1 1 auto;
+  margin: 0 0 var(--space-md);
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.actionCta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--accent-text);
+}
+
+.actionArrow {
+  width: 18px;
+  height: 18px;
+}
+
+/* --- Colonnes de contenu recent ------------------------------------------ */
+.columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+  align-items: start;
+  padding-bottom: var(--space-xl);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--text);
+}
+
+.panelCount {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-normal);
+  color: var(--text-muted);
+}
+
+.seeAll {
+  flex-shrink: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--accent-text);
+}
+
+.seeAll:hover {
+  text-decoration: underline;
+}
+
+/* --- Listes --------------------------------------------------------------- */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Un filet entre les lignes, jamais autour : la liste reste un bloc continu. */
+.list > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 56px;
+  padding: var(--space-xs) var(--space-lg);
+  transition: background 0.15s ease;
+}
+
+.row:hover {
+  background: var(--surface-sunken);
+}
+
+.row:hover .rowTitle {
+  color: var(--accent-text);
+}
+
+/* Pastille neutre : le type de fichier reste ecrit dans les metadonnees, donc
+   l'information ne depend jamais de la couleur (contraste, daltonisme). */
+.rowIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.rowIconGlyph {
+  width: 18px;
+  height: 18px;
+}
+
+/* Icone nue (historique de recherche) : la loupe, sans pastille. */
+.rowGlyph {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* Pastille ronde bleue (conversations) : le seul accent de la colonne. */
+.rowAvatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  color: var(--accent-text);
+  background: var(--primary-subtle);
+  border-radius: var(--radius-full);
+}
+
+.rowAvatarGlyph {
+  width: 16px;
+  height: 16px;
+}
+
+.rowBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rowTitle {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Colonne assistant ---------------------------------------------------- */
+/* Un seul panneau : la consigne, le champ de question, puis les dernieres
+   conversations — meme bloc, donc la colonne reste alignee sur ses voisines. */
+.assistantHead {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.assistantTitle {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--text);
+}
+
+.assistantText {
+  margin: 0;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.askArea {
+  padding: var(--space-md);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
+}
+
+.askForm {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease;
+}
+
+.askForm:focus-within {
+  border-color: var(--primary);
+}
+
+.askInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--space-sm);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  background: transparent;
+  border: none;
+}
+
+.askInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* Icone d'envoi nue : l'accent suffit a designer l'action. */
+.askSubmit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  margin-right: var(--space-xs);
+  color: var(--accent-text);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+}
+
+.askSubmit:hover {
+  color: var(--primary-hover);
+}
+
+.askIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.subheadTitle {
+  margin: 0;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* --- Etats ---------------------------------------------------------------- */
+/* Repris de `ui.module.css` : les libelles de formulaire doivent rester lus
+   par les lecteurs d'ecran sans etre visibles. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.empty {
+  margin: 0;
+  padding: var(--space-lg);
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.degraded {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--fs-sm);
+  color: var(--warning-text);
+  background: var(--warning-subtle);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-md);
+}
+
+/* --- Points de rupture ---------------------------------------------------- */
+/* 1 -> 2 -> 4 blocs d'action, puis 1 -> 3 colonnes. La densite suit la
+   maquette (1440px d'abord) sans jamais empiler les colonnes sur desktop. */
+@media (min-width: 640px) {
+  .accountName {
+    display: block;
+  }
+
+  .actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .inner {
+    padding: var(--space-2xl) var(--space-3xl);
+    gap: var(--space-2xl);
+  }
+
+  .columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

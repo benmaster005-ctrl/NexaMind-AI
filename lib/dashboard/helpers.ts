@@ -9,7 +9,17 @@
  * donc unique (plus de variante admin / collaborateur).
  */
 
-export type IconName = "home" | "search" | "chat" | "history" | "documents";
+export type IconName =
+  | "home"
+  | "search"
+  | "chat"
+  | "history"
+  | "documents"
+  | "upload"
+  | "file"
+  | "logout"
+  | "send"
+  | "arrow";
 
 export interface NavItem {
   href: string;
@@ -29,6 +39,16 @@ export function getNavItems(): NavItem[] {
     { href: "/history", label: "Historique", icon: "history" },
     { href: "/documents", label: "Documents", icon: "documents" },
   ];
+}
+
+/**
+ * Onglets de l'en-tete horizontal du tableau de bord : les quatre sections de
+ * travail, sans « Accueil ». La marque tient deja le role du retour a
+ * l'accueil (elle pointe `/`), donc l'onglet ferait doublon. Meme source de
+ * verite que la sidebar : on filtre, on ne reduplique pas.
+ */
+export function getTopNavItems(): NavItem[] {
+  return getNavItems().filter((item) => item.href !== "/");
 }
 
 /**
@@ -66,4 +86,102 @@ export function formatRelativeDate(
     month: "short",
     year: date.getFullYear() === new Date(nowMs).getFullYear() ? undefined : "numeric",
   });
+}
+
+/**
+ * Type de document deduit du chemin de stockage (refonte dashboard 2026-09-29).
+ *
+ * La table `resources` ne stocke ni extension ni taille : le nom de l'objet,
+ * lui, conserve l'extension du fichier depose. On n'invente donc aucune
+ * donnee — une extension inconnue rend simplement le libelle vide.
+ */
+const TYPE_LABELS: Record<string, string> = {
+  ".pdf": "PDF",
+  ".docx": "DOCX",
+  ".txt": "TXT",
+  ".md": "MD",
+};
+
+export function documentTypeLabel(storagePath: unknown): string {
+  const path = String(storagePath ?? "").toLowerCase();
+  const dot = path.lastIndexOf(".");
+  if (dot < 0) return "";
+  return TYPE_LABELS[path.slice(dot)] ?? "";
+}
+
+/** Date courte francaise : « 28 sept. 2026 ». Chaine vide si date invalide. */
+export function formatShortDate(isoDate: unknown): string {
+  const target = new Date(String(isoDate ?? "")).getTime();
+  if (Number.isNaN(target)) return "";
+  return new Date(target).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+/** Ecart en jours calendaires (et non en heures) entre deux instants locaux. */
+function calendarDayGap(from: number, to: number): number {
+  const a = new Date(from);
+  const b = new Date(to);
+  const dayA = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
+  const dayB = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
+  return Math.round((dayA - dayB) / 86_400_000);
+}
+
+/**
+ * Horodatage de l'historique : « Aujourd'hui · 09:42 », « Hier · 16:48 »,
+ * « Lun. 26 sept. · 16:20 ». Chaine vide si la date est absente ou invalide —
+ * on n'affiche jamais un horodatage invente.
+ *
+ * `nowMs` est injectable pour que le test ne depende pas de l'horloge.
+ */
+export function formatHistoryStamp(
+  isoDate: unknown,
+  nowMs: number = Date.now(),
+): string {
+  const target = new Date(String(isoDate ?? ""));
+  const ms = target.getTime();
+  if (Number.isNaN(ms)) return "";
+
+  const time = target.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const gap = calendarDayGap(nowMs, ms);
+  if (gap === 0) return `Aujourd'hui · ${time}`;
+  if (gap === 1) return `Hier · ${time}`;
+
+  const day = target.toLocaleDateString("fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  // fr-FR renvoie « lun. 26 sept. » : une puce de liste commence par une
+  // majuscule, on capitalise donc la premiere lettre seulement.
+  return `${day.charAt(0).toUpperCase()}${day.slice(1)} · ${time}`;
+}
+
+/**
+ * Nom affiche du compte connecte : `prenom.nom@nexaworks.example` -> `Prenom N.`.
+ * Aucune donnee inventee : le libelle est derive de l'adresse reelle.
+ */
+export function displayNameFromEmail(email: string): string {
+  const [local = ""] = String(email ?? "").split("@");
+  const parts = local.split(/[._-]+/).filter(Boolean);
+  if (parts.length === 0) return "Compte";
+  const first = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+  if (parts.length === 1) return first;
+  return `${first} ${parts[parts.length - 1].charAt(0).toUpperCase()}.`;
+}
+
+/** Deux premieres lettres du libelle, pour l'avatar (jamais d'image chargee). */
+export function initialsFromName(name: string): string {
+  const letters = String(name ?? "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase())
+    .filter((letter) => /[A-Z]/.test(letter));
+  if (letters.length === 0) return "NM";
+  return letters.slice(0, 2).join("");
 }

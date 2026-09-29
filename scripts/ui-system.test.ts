@@ -58,6 +58,7 @@ const TOKENS = [
   "--fs-xs", "--fs-sm", "--fs-base", "--fs-lg", "--fs-xl", "--fs-2xl", "--fs-3xl",
   "--fw-normal", "--fw-medium", "--fw-semibold", "--fw-bold",
   "--space-xs", "--space-sm", "--space-md", "--space-lg", "--space-xl",
+  "--space-2xl", "--space-3xl",
   "--radius-sm", "--radius-md", "--radius-lg", "--radius-full",
 ];
 
@@ -239,8 +240,15 @@ describe("navigation unique a icônes sobres", () => {
   it("les 7 ecrans branchent <AppNav> avec les onglets partages", () => {
     for (const file of SHELL_PAGES) {
       const src = read(file);
-      assert.match(src, /<AppNav /, `${file} n'affiche plus la navigation`);
-      assert.match(src, /getNavItems\(/, `${file} ne branche pas les onglets communs`);
+      assert.match(src, /<AppNav\b/, `${file} n'affiche plus la navigation`);
+      // Le tableau de bord prend les quatre onglets de l'en-tete horizontal
+      // (« Accueil » y est porte par la marque) ; les ecrans de travail
+      // gardent la sidebar et ses cinq entrees.
+      assert.match(
+        src,
+        /getNavItems\(|getTopNavItems\(/,
+        `${file} ne branche pas les onglets communs`,
+      );
     }
   });
 
@@ -357,6 +365,174 @@ describe("hygiene du shell", () => {
       !existsSync(join(root, "app/page.module.css")),
       "app/page.module.css : seconde copie des styles du shell",
     );
+  });
+});
+
+
+describe("tableau de bord refonde (2026-09-29)", () => {
+  const home = read("app/page.tsx");
+  const homeCss = read("components/dashboard/dashboard-home.module.css");
+  const nav = read("components/ui/app-nav.tsx");
+  const ui = read("components/ui/ui.module.css");
+  /** Code sans commentaires : les commentaires citent les motifs qu'ils
+   *  interdisent pour les expliquer — l'audit porte sur le rendu, pas sur la
+   *  prose (meme convention que `security.test.ts`). */
+  const codeOnly = (file) =>
+    read(file)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((line) => line.replace(/(^|[^:])\/\/[^\n]*/, "$1"))
+      .join("\n");
+
+  it("entete horizontal : marque, onglets, compte — et aucune sidebar", () => {
+    assert.match(home, /variant="topbar"/, "le tableau de bord garde la sidebar");
+    assert.match(home, /brand=\{<Brand \/>\}/, "la marque n'est pas dans l'entete");
+    assert.match(home, /actions=\{<UserBlock/, "le compte n'est pas dans l'entete");
+    // Les quatre sections de travail, sans onglet « Accueil » : la marque
+    // ramene deja a `/`, un onglet de plus ferait doublon.
+    assert.match(home, /items=\{getTopNavItems\(\)\}/);
+    assert.match(ui, /[.]topbar\s*\{[\s\S]*?position: sticky;/);
+    assert.ok(
+      !/padding-left: 260px/.test(homeCss),
+      "le tableau de bord reserve la place d'une sidebar",
+    );
+  });
+
+  it("structure attendue : titre, grande barre, 4 actions, 3 colonnes", () => {
+    const order = [
+      home.indexOf("styles.title"),
+      home.indexOf("styles.searchBar"),
+      home.indexOf("styles.actions"),
+      home.indexOf("styles.columns"),
+    ];
+    assert.ok(order.every((i) => i > -1), "une section du tableau de bord manque");
+    assert.deepEqual([...order].sort((a, b) => a - b), order, "sections dans le desordre");
+
+    const actions = /const ACTIONS[\s\S]*?\n\];/.exec(home)?.[0] ?? "";
+    assert.equal((actions.match(/title: "/g) ?? []).length, 4, "il faut 4 blocs d'action");
+    for (const label of [
+      "Assistant",
+      "Uploader une ressource",
+      "Documents",
+      "Historique de recherche",
+    ]) {
+      assert.ok(actions.includes(`"${label}"`), `action manquante : ${label}`);
+    }
+    assert.ok(!/title: "Recherche"/.test(actions), "la recherche a deja sa grande barre");
+  });
+
+  it("aucune salutation dans le tableau de bord", () => {
+    for (const greeting of ["Bonjour", "Bienvenue", "Bon retour"]) {
+      assert.ok(
+        !new RegExp(greeting, "i").test(home),
+        `salutation interdite dans le tableau de bord : ${greeting}`,
+      );
+    }
+  });
+
+  it("la recherche est un GET vers /search, sans element sous la barre", () => {
+    assert.match(home, /role="search" action="\/search"/);
+    assert.match(home, /placeholder="Rechercher un document, une information ou un sujet\.\.\."/);
+    for (const forbidden of ["recherches populaires", "chip", "suggestion"]) {
+      assert.ok(!new RegExp(forbidden, "i").test(home), `ajout interdit : ${forbidden}`);
+    }
+  });
+
+  it("les trois colonnes lisent des donnees reelles, jamais de factice", () => {
+    assert.match(home, /from\("resources"\)/, "documents absents");
+    assert.match(home, /from\("conversations"\)/, "conversations absentes");
+    assert.match(home, /listSearchHistory\(/, "historique de recherche absent");
+    assert.match(home, /action="\/chat"/);
+    assert.match(home, /href=\{`\/search\?q=\$\{encodeURIComponent\(entry\.query\)\}`\}/);
+    assert.ok(!/fetch\(/.test(home), "le tableau de bord ne doit pas appeler d'API");
+  });
+
+  it("l'assistant existant recoit la question du tableau de bord", () => {
+    const chatPage = read("app/chat/page.tsx");
+    assert.match(chatPage, /searchParams\?: Promise<\{ q\?: string \| string\[\] \}>/);
+    assert.match(chatPage, /<ChatClient initialQuestion=\{initialQuestion\} \/>/);
+    const chatClient = read("components/chat/chat-client.tsx");
+    assert.match(chatClient, /initialQuestion\?: string;/);
+    assert.match(chatClient, /initialQuestion\.trim\(\)/);
+  });
+
+  it("aucun symbole d'intelligence artificielle dans l'interface", () => {
+    const FORBIDDEN = [/sparkle/i, /brain|robot|circuit|orbit/i];
+    for (const file of TSX) {
+      const src = codeOnly(file);
+      for (const pattern of FORBIDDEN) {
+        assert.ok(!pattern.test(src), `${file} : motif visuel interdit (${pattern})`);
+      }
+    }
+    for (const file of MODULES) {
+      assert.ok(
+        !/linear-gradient|radial-gradient|conic-gradient/.test(read(file)),
+        `${file} : pas de gradient (design enterprise sobre)`,
+      );
+    }
+  });
+
+  it("la marque est abstraite, geometrique et sans image", () => {
+    const brand = read("components/dashboard/brand.tsx");
+    assert.match(brand, /<rect/g, "le sigle doit rester geometrique");
+    assert.match(brand, /aria-hidden="true"/, "le sigle est decoratif");
+    assert.match(brand, /NexaMind AI/);
+    assert.ok(!/<img|\.png|cdn/.test(brand), "pas d'image externe");
+  });
+
+  it("identite enterprise : cartes sobres et grille dense", () => {
+    /** Corps d'une regle simple (ce module n'imbrique jamais d'accolade). */
+    const block = (selector) =>
+      new RegExp(`[.]${selector}\\s*\\{([^}]*)\\}`).exec(homeCss)?.[1] ?? "";
+
+    // Les zones se detachent par un trait fin ; l'ombre reste un signal de
+    // survol, jamais un decor (ni verre depoli, ni carte flottante).
+    assert.match(block("actionCard"), /border: 1px solid var\(--border\);/);
+    assert.ok(!/box-shadow\s*:/.test(block("actionCard")), "carte ombree au repos");
+    assert.match(block("actionCard:hover"), /box-shadow: var\(--shadow-card\);/);
+    assert.ok(!/box-shadow\s*:/.test(block("panel")), "panneau ombree au repos");
+    assert.ok(!/backdrop-filter|blur\(/.test(homeCss), "pas de verre depoli");
+
+    const radii = [...homeCss.matchAll(/border-radius:\s*([^;]+);/g)].map((m) => m[1].trim());
+    assert.ok(
+      radii.every((r) => !/px/.test(r) || Number.parseInt(r, 10) <= 12),
+      `rayon trop grand : ${radii.join(", ")}`,
+    );
+    assert.match(homeCss, /repeat\(4, minmax\(0, 1fr\)\)/);
+    assert.match(homeCss, /repeat\(3, minmax\(0, 1fr\)\)/);
+    // Mobile : une colonne, puis deux a partir de 640px.
+    assert.match(homeCss, /[.]actions\s*\{[\s\S]*?grid-template-columns: 1fr;/);
+    assert.match(homeCss, /@media \(min-width: 640px\)[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/);
+  });
+
+  it("calque la maquette : en-tete 64px, listes a filets, horodatage", () => {
+    // En-tete compact sur une ligne, comme la reference.
+    assert.match(ui, /[.]topbar\s*\{[\s\S]*?min-height: 64px;/);
+    // Les listes sont continues : un filet entre les lignes, aucun contour.
+    assert.match(
+      homeCss,
+      /[.]list > li \+ li\s*\{[\s\S]*?border-top: 1px solid var\(--border\);/,
+    );
+    assert.ok(!/[.]list > li\s*\{[^}]*border/.test(homeCss), "chaque ligne encadree");
+    // Metadonnees reelles : type + categorie + date pour un document,
+    // « Aujourd'hui · 09:42 » pour une recherche.
+    assert.match(home, /\[type, doc\.category, date && `ajouté le \$\{date\}`\]/);
+    assert.match(home, /formatHistoryStamp\(entry\.createdAt\)/);
+    // Appel a l'action des blocs : texte + fleche, dans une carte cliquable.
+    assert.match(home, /className=\{styles\.actionCard\} href=\{action\.href\}/);
+    assert.match(home, /<Icon name="arrow" className=\{styles\.actionArrow\} \/>/);
+    // Le compte affiche nom + deconnexion directe (pas de menu a ouvrir).
+    assert.match(read("components/dashboard/user-block.tsx"), /<SignOutButton plain/);
+  });
+
+  it("accessibilite : labels, statuts et navigation au clavier", () => {
+    assert.match(home, /htmlFor="dashboard-search"/);
+    assert.match(home, /htmlFor="dashboard-question"/);
+    assert.match(homeCss, /[.]visuallyHidden\s*\{/);
+    assert.match(home, /aria-label="Documents récents"/);
+    assert.match(home, /aria-label="Démarrer une conversation"/);
+    assert.match(home, /<ul className=\{styles\.list\}>/);
+    assert.match(nav, /aria-current=\{isActive \? "page" : undefined\}/);
   });
 });
 

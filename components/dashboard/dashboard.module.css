@@ -1,10 +1,12 @@
 /**
- * Styles du tableau de bord — charte « Clean Tech Slate » (DESIGN.md).
+ * Coquille des ecrans de travail (recherche, assistant, historique, documents,
+ * fiche) — charte « Clean Tech Slate » (DESIGN.md).
  *
- * Mobile-first sans Tailwind : barre basse 64px + safe-area et sidebar 260px
- * (components/ui/app-nav.tsx), tactiles >= 44px, texte 16px. Toutes les
- * couleurs viennent des tokens de app/globals.css : le theme clair/sombre est
- * donc automatique.
+ * Le tableau de bord a sa propre feuille (`dashboard-home.module.css`) : il
+ * n'a ni sidebar ni barre basse. Ici, mobile-first sans Tailwind : barre basse
+ * 64px + safe-area et sidebar 260px (components/ui/app-nav.tsx), tactiles
+ * >= 44px, texte 16px. Toutes les couleurs viennent des tokens de
+ * app/globals.css : le theme clair/sombre est donc automatique.
  */
 
 .page {
@@ -43,47 +45,6 @@
   color: var(--text);
 }
 
-.searchLink {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-height: 48px;
-  padding: var(--space-sm);
-  font-size: var(--fs-base);
-  color: var(--text-muted);
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-.searchLink:hover {
-  color: var(--text-secondary);
-  border-color: var(--border-strong);
-}
-
-.metric {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-xs);
-}
-
-.metricNumber {
-  font-size: var(--fs-3xl);
-  font-weight: var(--fw-bold);
-  color: var(--text);
-}
-
-.metricLabel {
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
-}
-
-.metricDate {
-  margin: 0.25rem 0 0;
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-}
-
 .degraded {
   margin: var(--space-xs) 0 0;
   padding: var(--space-sm);
@@ -92,45 +53,6 @@
   background: var(--warning-subtle);
   border: 1px solid var(--warning-border);
   border-radius: var(--radius-md);
-}
-
-.shortcuts {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-sm);
-}
-
-.shortcut {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-  min-height: 64px;
-  padding: var(--space-sm);
-  background: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-.shortcut:hover {
-  border-color: var(--border-strong);
-}
-
-.shortcutIcon {
-  width: 20px;
-  height: 20px;
-  color: var(--text-muted);
-}
-
-.shortcutLabel {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--text);
-}
-
-.shortcutHint {
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
 }
 
 .conversations {
@@ -142,45 +64,10 @@
   gap: var(--space-xs);
 }
 
-.conversationLink {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-xs);
-  min-height: 48px;
-  padding: var(--space-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-}
-
-.conversationLink:hover {
-  background: var(--surface-sunken);
-}
-
-.conversationTitle {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.conversationDate {
-  flex-shrink: 0;
-  font-size: var(--fs-xs);
-  color: var(--text-muted);
-}
-
 .empty {
   margin: 0;
   font-size: var(--fs-sm);
   color: var(--text-muted);
-}
-
-.empty a {
-  color: var(--accent-text);
-  font-weight: var(--fw-medium);
-  text-decoration: underline;
 }
 
 @media (min-width: 768px) {

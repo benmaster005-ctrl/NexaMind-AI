@@ -38,6 +38,12 @@ interface ChatClientProps {
   initialMessages?: InitialChatMessage[];
   /** Conversation deja ouverte (4.4) : relayee a /api/chat. */
   conversationId?: string;
+  /**
+   * Question pre-remplie depuis le tableau de bord (`/chat?q=...`).
+   * Elle atterrit dans le composeur : l'envoi reste une action explicite de
+   * l'utilisateur, via le flux NDJSON deja en place (aucun nouvel appel).
+   */
+  initialQuestion?: string;
 }
 
 /**
@@ -178,11 +184,15 @@ async function readNdjsonStream(
 export default function ChatClient({
   initialMessages = [],
   conversationId,
+  initialQuestion = "",
 }: ChatClientProps) {
   const [messages, setMessages] = useState<PostedMessage[]>(() =>
     initialMessages.map((m) => ({ ...m, errorMessage: null })),
   );
-  const [input, setInput] = useState("");
+  // La question du tableau de bord est bornee comme une saisie manuelle.
+  const [input, setInput] = useState(
+    initialQuestion.trim().slice(0, MAX_QUESTION_LENGTH),
+  );
   const [isStreaming, setIsStreaming] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
   const [openCitation, setOpenCitation] = useState<{
