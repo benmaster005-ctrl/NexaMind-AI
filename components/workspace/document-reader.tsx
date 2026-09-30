@@ -6,6 +6,7 @@ import { documentTypeLabel, formatShortDate } from "@/lib/dashboard/helpers";
 import { formatChunkPosition, type DocumentView } from "@/lib/resources/view";
 import { READY_STATUS } from "@/lib/ai/summary";
 import { buttonClass } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import SummarySheet from "@/components/resources/summary-sheet";
 import type { ResourceData } from "@/app/actions/workspace";
 import styles from "./workspace.module.css";
@@ -102,11 +103,10 @@ export default function DocumentReader({
                 <span className={styles.metaItem}>Ajouté le {dateFormatted}</span>
               </>
             ) : null}
-            <span className={styles.metaDot}>·</span>
-            <span className={styles.metaItem}>
+            <Badge variant={isReady ? "success" : "neutral"}>
               {document.status}
-              {document.chunk_count ? ` (${document.chunk_count} morceaux)` : ""}
-            </span>
+              {document.chunk_count ? ` · ${document.chunk_count} segments` : ""}
+            </Badge>
           </div>
 
           <div className={styles.metaGroup}>

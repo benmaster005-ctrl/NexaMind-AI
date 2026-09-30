@@ -15,6 +15,10 @@
   font-family: var(--font-sans);
 }
 
+/* Theme variant markers — declarations live in globals.css via prefers-color-scheme */
+.themeDark {}
+.themeLight {}
+
 /* --- HEADER --- */
 .header {
   height: 52px;
