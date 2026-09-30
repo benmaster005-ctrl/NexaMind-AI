@@ -25,7 +25,9 @@ export type IconName =
   | "moon"
   | "chevronDown"
   | "chevronRight"
-  | "plus";
+  | "plus"
+  | "menu"
+  | "user";
 
 export interface NavItem {
   href: string;

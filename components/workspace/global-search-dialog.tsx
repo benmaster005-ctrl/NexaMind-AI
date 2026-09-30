@@ -125,6 +125,14 @@ export default function GlobalSearchDialog({
         aria-label="Recherche globale NexaMind AI"
       >
         <div className={styles.commandHeader}>
+          <button
+            type="button"
+            className={`${styles.mobileBackAction} ${styles.mobileOnly}`}
+            onClick={onClose}
+            aria-label="Fermer la recherche"
+          >
+            <Icon name="arrow" className={styles.iconRotate180} />
+          </button>
           <Icon name="search" />
           <input
             ref={inputRef}

@@ -640,3 +640,46 @@ describe("workspace finalisé — accessibilité, modales et commandes", () => {
   });
 });
 
+describe("architecture responsive mobile et tablette NexaMind AI", () => {
+  const wsCss = read("components/workspace/workspace.module.css");
+  const gHeader = read("components/workspace/global-header.tsx");
+  const docSidebar = read("components/workspace/document-sidebar.tsx");
+  const rPanel = read("components/workspace/right-panel.tsx");
+  const gSearch = read("components/workspace/global-search-dialog.tsx");
+
+  it("header mobile compact : burger menu, titre court, recherche et profil", () => {
+    assert.match(gHeader, /mobileMenuAction/);
+    assert.match(gHeader, /mobileHeaderTitle/);
+    assert.match(gHeader, /mobileSearchControl/);
+    assert.match(gHeader, /mobileUserControl/);
+    assert.match(gHeader, /userDropdown/);
+  });
+
+  it("sidebar drawer mobile : volet avec backdrop, fermeture claire et navigation", () => {
+    assert.match(docSidebar, /drawerBackdrop/);
+    assert.match(docSidebar, /drawerHeader/);
+    assert.match(docSidebar, /drawerBackAction/);
+    assert.match(docSidebar, /drawerCloseControl/);
+  });
+
+  it("panneau droit mobile : navigation par couches avec retour document", () => {
+    assert.match(rPanel, /drawerBackdrop/);
+    assert.match(rPanel, /drawerBackAction/);
+    assert.match(rPanel, /drawerCloseControl/);
+  });
+
+  it("recherche mobile plein écran avec bouton retour", () => {
+    assert.match(gSearch, /mobileBackAction/);
+  });
+
+  it("styles responsive : safe areas, zones tactiles 44px et aucun débordement de table/code", () => {
+    assert.match(wsCss, /@media \(max-width: 639px\)/);
+    assert.match(wsCss, /@media \(max-width: 1023px\)/);
+    assert.match(wsCss, /env\(safe-area-inset-bottom\)/);
+    assert.match(wsCss, /min-height:\s*44px/);
+    assert.match(wsCss, /\.passageBody table\s*\{[\s\S]*?overflow-x:\s*auto/);
+    assert.match(wsCss, /\.passageBody pre/);
+  });
+});
+
+

@@ -40,6 +40,8 @@ interface RightPanelProps {
   onSendChatMessage: (text: string) => void;
   onSelectDocumentSource: (resourceId: string, chunkId?: string | null) => void;
   onNewConversation: () => void;
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
 }
 
 function AnswerLine({
@@ -134,6 +136,8 @@ export default function RightPanel({
   onSendChatMessage,
   onSelectDocumentSource,
   onNewConversation,
+  isOpenMobile,
+  onCloseMobile,
 }: RightPanelProps) {
   const [composerInput, setComposerInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -157,36 +161,70 @@ export default function RightPanel({
   };
 
   return (
-    <aside className={styles.rightPane} aria-label="Volet secondaire : Historique et Assistant">
-      <div className={styles.rightPaneHeader}>
-        <div className={styles.rightPaneTabs}>
-          <button
-            type="button"
-            className={`${styles.rightPaneTab} ${mode === "history" ? styles.rightPaneTabActive : ""}`}
-            onClick={() => onSwitchMode("history")}
-          >
-            Historique
-          </button>
-          <button
-            type="button"
-            className={`${styles.rightPaneTab} ${mode === "chat" ? styles.rightPaneTabActive : ""}`}
-            onClick={() => onSwitchMode("chat")}
-          >
-            Assistant AI
-          </button>
-        </div>
+    <>
+      {isOpenMobile ? (
+        <div
+          className={styles.drawerBackdrop}
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      ) : null}
 
-        {mode === "chat" ? (
-          <button
-            type="button"
-            className={styles.formatTag}
-            onClick={onNewConversation}
-            title="Nouvelle conversation"
-          >
-            + Nouveau
-          </button>
-        ) : null}
-      </div>
+      <aside
+        className={`${styles.rightPane} ${isOpenMobile ? styles.rightPaneOpen : ""}`}
+        aria-label="Volet secondaire : Historique et Assistant"
+      >
+        <div className={styles.rightPaneHeader}>
+          <div className={styles.rightPaneTabs}>
+            {isOpenMobile ? (
+              <button
+                type="button"
+                className={`${styles.drawerBackAction} ${styles.mobileOnly}`}
+                onClick={onCloseMobile}
+                aria-label="Fermer le volet"
+              >
+                <Icon name="arrow" className={styles.iconRotate180} />
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className={`${styles.rightPaneTab} ${mode === "history" ? styles.rightPaneTabActive : ""}`}
+              onClick={() => onSwitchMode("history")}
+            >
+              Historique
+            </button>
+            <button
+              type="button"
+              className={`${styles.rightPaneTab} ${mode === "chat" ? styles.rightPaneTabActive : ""}`}
+              onClick={() => onSwitchMode("chat")}
+            >
+              Assistant AI
+            </button>
+          </div>
+
+          <div className={styles.headerRightControls}>
+            {mode === "chat" ? (
+              <button
+                type="button"
+                className={styles.formatTag}
+                onClick={onNewConversation}
+                title="Nouvelle conversation"
+              >
+                + Nouveau
+              </button>
+            ) : null}
+            {isOpenMobile ? (
+              <button
+                type="button"
+                className={`${styles.drawerCloseControl} ${styles.mobileOnly}`}
+                onClick={onCloseMobile}
+                aria-label="Fermer"
+              >
+                <Icon name="close" />
+              </button>
+            ) : null}
+          </div>
+        </div>
 
       <div className={styles.rightPaneContent}>
         {mode === "history" ? (
@@ -200,7 +238,10 @@ export default function RightPanel({
                     <button
                       type="button"
                       className={`${styles.historyItemLink} ${styles.wFullLeft}`}
-                      onClick={() => onSelectSearchQuery(item.query)}
+                      onClick={() => {
+                        onSelectSearchQuery(item.query);
+                        onCloseMobile?.();
+                      }}
                     >
                       <span className={styles.historyItemTitle}>{item.query}</span>
                       <span className={styles.historyItemTime}>
@@ -279,7 +320,10 @@ export default function RightPanel({
                       <AnswerBody
                         text={text}
                         citations={citations}
-                        onCitation={(cit) => onSelectDocumentSource(cit.sourceId, cit.chunkId)}
+                        onCitation={(cit) => {
+                          onSelectDocumentSource(cit.sourceId, cit.chunkId);
+                          onCloseMobile?.();
+                        }}
                       />
                     ) : null}
 
@@ -292,7 +336,10 @@ export default function RightPanel({
                               key={c.sourceId + i}
                               type="button"
                               className={styles.sourceChipAction}
-                              onClick={() => onSelectDocumentSource(c.sourceId, c.chunkId)}
+                              onClick={() => {
+                                onSelectDocumentSource(c.sourceId, c.chunkId);
+                                onCloseMobile?.();
+                              }}
                             >
                               <Icon name="file" />
                               <span className={styles.chipTruncate}>
@@ -335,5 +382,6 @@ export default function RightPanel({
         )}
       </div>
     </aside>
+    </>
   );
 }

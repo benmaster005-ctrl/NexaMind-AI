@@ -528,8 +528,30 @@
 .passageBody {
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: break-word;
   font-size: var(--fs-base);
   color: var(--text);
+}
+
+.passageBody table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: collapse;
+}
+
+.passageBody pre,
+.passageBody code {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  word-break: normal;
+}
+
+.passageBody img {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Empty reader state */
@@ -1098,24 +1120,281 @@
   cursor: not-allowed;
 }
 
-/* --- RESPONSIVE ADJUSTMENTS --- */
-@media (max-width: 1024px) {
-  .rightPane {
-    width: 320px;
-    min-width: 320px;
-  }
+/* --- RESPONSIVE UTILITY DISPLAY CLASSES --- */
+.desktopOnly {
+  display: flex;
+  align-items: center;
 }
 
-@media (max-width: 860px) {
+.mobileOnly {
+  display: none;
+}
+
+.tabletOnly {
+  display: none;
+}
+
+/* Visible on mobile + tablet (< 1024px), hidden on desktop */
+.belowDesktop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- DESKTOP OVERRIDE: hide all mobile-only elements at >= 1024px --- */
+@media (min-width: 1024px) {
+  .belowDesktop { display: none !important; }
+  .mobileOnly { display: none !important; }
+  .mobileMenuAction { display: none !important; }
+  .mobileHeaderTitle { display: none !important; }
+  .mobileSearchControl { display: none !important; }
+  .mobileUserControl { display: none !important; }
+  .userDropdown { display: none !important; }
+  .drawerBackdrop { display: none !important; }
+}
+
+.headerRightControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* --- MOBILE HEADER ELEMENTS --- */
+.mobileMenuAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobileMenuAction:hover {
+  background-color: var(--surface-sunken);
+}
+
+.mobileHeaderTitle {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  max-width: 180px;
+}
+
+.mobileSearchControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobileSearchControl:hover {
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+.mobileUserControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+
+/* User Popover / Dropdown */
+.userDropdown {
+  position: absolute;
+  top: 52px;
+  right: var(--space-sm);
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sheet);
+  padding: var(--space-xs);
+  min-width: 220px;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.userDropdownEmail {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.userDropdownItem:hover {
+  background-color: var(--surface-sunken);
+}
+
+/* --- MOBILE DRAWER ELEMENTS (SIDEBAR & RIGHT PANEL) --- */
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--scrim);
+  z-index: 40;
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  min-height: 52px;
+  padding: 0 var(--space-md);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.drawerTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.drawerTitle {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semibold);
+  color: var(--text);
+}
+
+.drawerBackAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.drawerBackAction:hover {
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+.drawerCloseControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.drawerCloseControl:hover {
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+.iconRotate180 {
+  transform: rotate(180deg);
+}
+
+.mobileBackAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.mobileBackAction:hover {
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+/* --- RESPONSIVE ADJUSTMENTS --- */
+@media (max-width: 1023px) {
+  .headerLeft {
+    min-width: 0;
+  }
+
+  .headerRight {
+    min-width: 0;
+  }
+
+  .headerCenter {
+    max-width: 400px;
+    margin: 0 var(--space-xs);
+  }
+
   .sidebar {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
-    z-index: 30;
+    width: 320px;
+    max-width: 85vw;
+    z-index: 45;
     box-shadow: var(--shadow-sheet);
     transform: translateX(-100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.25s ease;
   }
 
   .sidebarOpen {
@@ -1127,17 +1406,150 @@
   }
 
   .rightPane {
-    position: absolute;
+    position: fixed;
     right: 0;
     top: 0;
     bottom: 0;
-    z-index: 30;
+    width: 400px;
+    max-width: 90vw;
+    z-index: 45;
     box-shadow: var(--shadow-sheet);
     transform: translateX(100%);
-    transition: transform 0.2s ease;
+    transition: transform 0.25s ease;
   }
 
   .rightPaneOpen {
     transform: translateX(0);
+  }
+
+  .readerScrollContainer {
+    padding: var(--space-lg) var(--space-md) 130px;
+  }
+}
+
+@media (max-width: 639px) {
+  .desktopOnly {
+    display: none !important;
+  }
+
+  .mobileOnly {
+    display: flex !important;
+  }
+
+  .header {
+    padding: 0 var(--space-xs);
+  }
+
+  .headerLeft {
+    gap: 0;
+  }
+
+  .headerCenter {
+    flex: 1;
+    margin: 0 4px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .headerRight {
+    gap: 0;
+  }
+
+  .categoryBar {
+    padding: 0 var(--space-xs);
+    height: 40px;
+    min-height: 40px;
+  }
+
+  .categoryItem {
+    min-height: 34px;
+    padding: 2px var(--space-xs);
+  }
+
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .rightPane {
+    width: 100%;
+    max-width: 100%;
+    border-left: none;
+  }
+
+  .readerScrollContainer {
+    padding: var(--space-md) var(--space-sm) 120px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .docH1 {
+    font-size: var(--fs-xl);
+    line-height: 1.3;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .docMetaBar {
+    gap: var(--space-xs);
+  }
+
+  .bottomAssistantWrap {
+    padding: var(--space-xs) var(--space-sm);
+    padding-bottom: max(var(--space-xs), env(safe-area-inset-bottom));
+  }
+
+  .bottomSubmitAction {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .bottomTextarea {
+    font-size: var(--fs-base);
+  }
+
+  .dialogBackdrop {
+    padding-top: 0;
+    align-items: stretch;
+  }
+
+  .commandPalette {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: none;
+  }
+
+  .commandRow {
+    min-height: 44px;
+  }
+
+  .uploadModal {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    max-height: 94vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dropZone {
+    padding: var(--space-md);
+  }
+
+  .formInput,
+  .formSelect {
+    min-height: 44px;
+    font-size: var(--fs-base);
+  }
+
+  .uploadSubmitAction {
+    min-height: 44px;
   }
 }

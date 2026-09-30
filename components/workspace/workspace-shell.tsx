@@ -127,6 +127,7 @@ export default function WorkspaceShell({
   const [isSearchOpen, setIsSearchOpen] = useState(Boolean(initialQuery));
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isOpenMobileSidebar, setIsOpenMobileSidebar] = useState(false);
+  const [isMobileRightPanelOpen, setIsMobileRightPanelOpen] = useState(false);
 
   // Initialize theme from system or localStorage on mount
   useEffect(() => {
@@ -181,6 +182,7 @@ export default function WorkspaceShell({
     setTargetChunkId(chunkId ?? null);
     setIsLoadingDoc(true);
     setIsOpenMobileSidebar(false);
+    setIsMobileRightPanelOpen(false);
 
     // Update URL query parameter
     try {
@@ -209,6 +211,7 @@ export default function WorkspaceShell({
 
   // Select document by ID (e.g. from chat citation or search result)
   const handleSelectDocumentById = async (resourceId: string, chunkId?: string | null) => {
+    setIsMobileRightPanelOpen(false);
     const found = documents.find((d) => d.id === resourceId);
     if (found) {
       await handleSelectDocument(found, chunkId);
@@ -237,6 +240,7 @@ export default function WorkspaceShell({
     chatAbortRef.current = controller;
 
     setRightPanelMode("chat");
+    setIsMobileRightPanelOpen(true);
     setIsChatStreaming(true);
 
     const userMessage: ChatMessage = {
@@ -378,9 +382,17 @@ export default function WorkspaceShell({
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenSearch={() => setIsSearchOpen(true)}
-        isChatOpen={rightPanelMode === "chat"}
-        onToggleChat={() => setRightPanelMode((prev) => (prev === "chat" ? "history" : "chat"))}
+        isChatOpen={rightPanelMode === "chat" && isMobileRightPanelOpen}
+        onToggleChat={() => {
+          setRightPanelMode("chat");
+          setIsMobileRightPanelOpen((prev) => !prev);
+        }}
         onToggleMobileSidebar={() => setIsOpenMobileSidebar((prev) => !prev)}
+        selectedDocTitle={selectedDoc?.title}
+        onOpenHistory={() => {
+          setRightPanelMode("history");
+          setIsMobileRightPanelOpen(true);
+        }}
       />
 
       {/* 2. Category Navigation */}
@@ -438,6 +450,8 @@ export default function WorkspaceShell({
           onSendChatMessage={handleAskQuestion}
           onSelectDocumentSource={handleSelectDocumentById}
           onNewConversation={handleStartNewConversation}
+          isOpenMobile={isMobileRightPanelOpen}
+          onCloseMobile={() => setIsMobileRightPanelOpen(false)}
         />
       </div>
 

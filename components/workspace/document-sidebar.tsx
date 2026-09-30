@@ -25,6 +25,7 @@ export default function DocumentSidebar({
   onSelectDocument,
   onOpenUpload,
   isOpenMobile,
+  onCloseMobile,
 }: DocumentSidebarProps) {
   // Accordion state: keep track of collapsed categories
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
@@ -76,20 +77,54 @@ export default function DocumentSidebar({
   };
 
   return (
-    <aside
-      className={`${styles.sidebar} ${isOpenMobile ? styles.sidebarOpen : ""}`}
-      aria-label="Navigation de la bibliothèque documentaire"
-    >
-      <div className={styles.sidebarTop}>
-        <button
-          type="button"
-          className={styles.addResourceAction}
-          onClick={onOpenUpload}
-        >
-          <Icon name="plus" />
-          <span>Ajouter une ressource</span>
-        </button>
-      </div>
+    <>
+      {isOpenMobile ? (
+        <div
+          className={styles.drawerBackdrop}
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      ) : null}
+
+      <aside
+        className={`${styles.sidebar} ${isOpenMobile ? styles.sidebarOpen : ""}`}
+        aria-label="Navigation de la bibliothèque documentaire"
+      >
+        <div className={`${styles.drawerHeader} ${styles.mobileOnly}`}>
+          <div className={styles.drawerTitleWrap}>
+            <button
+              type="button"
+              className={styles.drawerBackAction}
+              onClick={onCloseMobile}
+              aria-label="Fermer la bibliothèque"
+            >
+              <Icon name="arrow" className={styles.iconRotate180} />
+            </button>
+            <span className={styles.drawerTitle}>Bibliothèque</span>
+          </div>
+          <button
+            type="button"
+            className={styles.drawerCloseControl}
+            onClick={onCloseMobile}
+            aria-label="Fermer"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+
+        <div className={styles.sidebarTop}>
+          <button
+            type="button"
+            className={styles.addResourceAction}
+            onClick={() => {
+              onOpenUpload();
+              onCloseMobile();
+            }}
+          >
+            <Icon name="plus" />
+            <span>Ajouter une ressource</span>
+          </button>
+        </div>
 
       <div className={styles.sidebarScroll}>
         {/* Section 1: MES RESSOURCES */}
@@ -167,5 +202,6 @@ export default function DocumentSidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }

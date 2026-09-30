@@ -37,6 +37,8 @@ const PATHS: Record<IconName, string> = {
   chevronDown: "M6 9l6 6 6-6",
   chevronRight: "M9 6l6 6-6 6",
   plus: "M12 5v14M5 12h14",
+  menu: "M4 6h16M4 12h16M4 18h16",
+  user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
 };
 
 export function Icon({ name, className }: IconProps) {
