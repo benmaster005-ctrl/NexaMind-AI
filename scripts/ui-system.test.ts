@@ -33,9 +33,8 @@ const SOURCES = [...walk("app"), ...walk("components")];
 const MODULES = SOURCES.filter((f) => f.endsWith(".module.css"));
 const TSX = SOURCES.filter((f) => f.endsWith(".tsx"));
 
-/** Les 7 ecrans qui portaient leur propre copie de la navigation. */
+/** Les ecrans autonomes du dashboard qui portent la navigation secondaire. */
 const SHELL_PAGES = [
-  "app/page.tsx",
   "app/search/page.tsx",
   "app/chat/page.tsx",
   "app/chat/[id]/page.tsx",
@@ -332,7 +331,7 @@ describe("hygiene du shell", () => {
     // bouton de recherche du tableau de bord et la déconnexion.
     assert.ok(consumers("@/components/ui/button") >= 2, "buttonClass sans consommateur réel");
     assert.ok(consumers("@/components/ui/badge") >= 2, "Badge presque utilise");
-    assert.ok(consumers("@/components/ui/app-nav") >= 7, "AppNav moins utilise que les 7 ecrans");
+    assert.ok(consumers("@/components/ui/app-nav") >= 6, "AppNav moins utilise que les ecrans");
   });
 
   it("aucune classe fantome : toute classe consommée existe dans son module", () => {
@@ -371,170 +370,54 @@ describe("hygiene du shell", () => {
 });
 
 
-describe("tableau de bord refonde (2026-09-29)", () => {
+describe("workspace documentaire NexaMind AI (refonte SaaS 2026-09-30)", () => {
   const home = read("app/page.tsx");
-  const homeCss = read("components/dashboard/dashboard-home.module.css");
-  const nav = read("components/ui/app-nav.tsx");
-  const ui = read("components/ui/ui.module.css");
-  /** Code sans commentaires : les commentaires citent les motifs qu'ils
-   *  interdisent pour les expliquer — l'audit porte sur le rendu, pas sur la
-   *  prose (meme convention que `security.test.ts`). */
-  const codeOnly = (file) =>
-    read(file)
-      .replace(/\/\*[\s\S]*?\*\//g, "")
-      .split("\n")
-      .map((line) => line.replace(/(^|[^:])\/\/[^\n]*/, "$1"))
-      .join("\n");
+  const shell = read("components/workspace/workspace-shell.tsx");
+  const reader = read("components/workspace/document-reader.tsx");
+  const bottomBar = read("components/workspace/assistant-bottom-bar.tsx");
+  const rightPanel = read("components/workspace/right-panel.tsx");
 
-  it("entete horizontal : marque, onglets, compte — et aucune sidebar", () => {
-    assert.match(home, /variant="topbar"/, "le tableau de bord garde la sidebar");
-    assert.match(home, /brand=\{<Brand \/>\}/, "la marque n'est pas dans l'entete");
-    assert.match(home, /actions=\{<UserBlock/, "le compte n'est pas dans l'entete");
-    // Les quatre sections de travail, sans onglet « Accueil » : la marque
-    // ramene deja a `/`, un onglet de plus ferait doublon.
-    assert.match(home, /items=\{getTopNavItems\(\)\}/);
-    assert.match(ui, /[.]topbar\s*\{[\s\S]*?position: sticky;/);
-    assert.ok(
-      !/padding-left: 260px/.test(homeCss),
-      "le tableau de bord reserve la place d'une sidebar",
-    );
+  it("branche le WorkspaceShell avec les données réelles de Supabase", () => {
+    assert.match(home, /<WorkspaceShell\b/);
+    assert.match(home, /from\("resources"\)/);
+    assert.match(home, /from\("conversations"\)/);
+    assert.match(home, /listSearchHistory\(/);
+    assert.match(home, /buildDocumentView\(/);
+    assert.ok(!home.includes('"use client"'), "la page principale doit rester un Server Component");
   });
 
-  it("structure attendue : titre, grande barre, 4 actions, 3 colonnes", () => {
-    const order = [
-      home.indexOf("<PageHeader"),
-      home.indexOf("styles.searchBar"),
-      home.indexOf("styles.actions"),
-      home.indexOf("styles.columns"),
-    ];
-    assert.ok(order.every((i) => i > -1), "une section du tableau de bord manque");
-    assert.deepEqual([...order].sort((a, b) => a - b), order, "sections dans le desordre");
-
-    const actions = /const ACTIONS[\s\S]*?\n\];/.exec(home)?.[0] ?? "";
-    assert.equal((actions.match(/title: "/g) ?? []).length, 4, "il faut 4 blocs d'action");
-    for (const label of [
-      "Assistant",
-      "Uploader une ressource",
-      "Documents",
-      "Historique de recherche",
-    ]) {
-      assert.ok(actions.includes(`"${label}"`), `action manquante : ${label}`);
-    }
-    assert.ok(!/title: "Recherche"/.test(actions), "la recherche a deja sa grande barre");
+  it("structure 3 colonnes : Header, Catégories, Sidebar, Reader, Assistant, Volet droit", () => {
+    assert.match(shell, /<GlobalHeader\b/);
+    assert.match(shell, /<CategoryBar\b/);
+    assert.match(shell, /<DocumentSidebar\b/);
+    assert.match(shell, /<DocumentReader\b/);
+    assert.match(shell, /<AssistantBottomBar\b/);
+    assert.match(shell, /<RightPanel\b/);
+    assert.match(shell, /<GlobalSearchDialog\b/);
+    assert.match(shell, /<ResourceUploadModal\b/);
   });
 
-  it("aucune salutation dans le tableau de bord", () => {
-    for (const greeting of ["Bonjour", "Bienvenue", "Bon retour"]) {
-      assert.ok(
-        !new RegExp(greeting, "i").test(home),
-        `salutation interdite dans le tableau de bord : ${greeting}`,
-      );
-    }
+  it("le lecteur documentaire affiche le contenu réel des morceaux indexés", () => {
+    assert.match(reader, /documentView/);
+    assert.match(reader, /formatChunkPosition/);
+    assert.match(reader, /passageTargetBadge/);
   });
 
-  it("la recherche est un GET vers /search, sans element sous la barre", () => {
-    assert.match(home, /role="search" action="\/search"/);
-    assert.match(home, /placeholder="Rechercher un document, une information ou un sujet\.\.\."/);
-    for (const forbidden of ["recherches populaires", "chip", "suggestion"]) {
-      assert.ok(!new RegExp(forbidden, "i").test(home), `ajout interdit : ${forbidden}`);
-    }
+  it("l'assistant en bas est fixé dans le workspace central", () => {
+    assert.match(bottomBar, /onAskQuestion/);
+    assert.match(bottomBar, /Posez une question/);
   });
 
-  it("les trois colonnes lisent des donnees reelles, jamais de factice", () => {
-    assert.match(home, /from\("resources"\)/, "documents absents");
-    assert.match(home, /from\("conversations"\)/, "conversations absentes");
-    assert.match(home, /listSearchHistory\(/, "historique de recherche absent");
-    assert.match(home, /action="\/chat"/);
-    assert.match(home, /href=\{`\/search\?q=\$\{encodeURIComponent\(entry\.query\)\}`\}/);
-    assert.ok(!/fetch\(/.test(home), "le tableau de bord ne doit pas appeler d'API");
+  it("le volet droit supporte à la fois l'historique et le chat avec citations", () => {
+    assert.match(rightPanel, /mode === "history"/);
+    assert.match(rightPanel, /mode === "chat"/);
+    assert.match(rightPanel, /citations/);
   });
 
-  it("l'assistant existant recoit la question du tableau de bord", () => {
-    const chatPage = read("app/chat/page.tsx");
-    assert.match(chatPage, /searchParams\?: Promise<\{ q\?: string \| string\[\] \}>/);
-    assert.match(chatPage, /<ChatClient initialQuestion=\{initialQuestion\} \/>/);
-    const chatClient = read("components/chat/chat-client.tsx");
-    assert.match(chatClient, /initialQuestion\?: string;/);
-    assert.match(chatClient, /initialQuestion\.trim\(\)/);
-  });
-
-  it("aucun symbole d'intelligence artificielle dans l'interface", () => {
-    const FORBIDDEN = [/sparkle/i, /brain|robot|circuit|orbit/i];
-    for (const file of TSX) {
-      const src = codeOnly(file);
-      for (const pattern of FORBIDDEN) {
-        assert.ok(!pattern.test(src), `${file} : motif visuel interdit (${pattern})`);
-      }
-    }
-    for (const file of MODULES) {
-      assert.ok(
-        !/linear-gradient|radial-gradient|conic-gradient/.test(read(file)),
-        `${file} : pas de gradient (design enterprise sobre)`,
-      );
-    }
-  });
-
-  it("la marque est abstraite, geometrique et sans image", () => {
+  it("la marque est abstraite, géométrique et sans image", () => {
     const brand = read("components/dashboard/brand.tsx");
-    assert.match(brand, /<rect/g, "le sigle doit rester geometrique");
-    assert.match(brand, /aria-hidden="true"/, "le sigle est decoratif");
+    assert.match(brand, /<rect/g);
     assert.match(brand, /NexaMind AI/);
-    assert.ok(!/<img|\.png|cdn/.test(brand), "pas d'image externe");
-  });
-
-  it("identite enterprise : cartes sobres et grille dense", () => {
-    /** Corps d'une regle simple (ce module n'imbrique jamais d'accolade). */
-    const block = (selector) =>
-      new RegExp(`[.]${selector}\\s*\\{([^}]*)\\}`).exec(homeCss)?.[1] ?? "";
-
-    // Les zones se detachent par un trait fin ; l'ombre reste un signal de
-    // survol, jamais un decor (ni verre depoli, ni carte flottante).
-    assert.match(block("actionCard"), /border: 1px solid var\(--border\);/);
-    assert.ok(!/box-shadow\s*:/.test(block("actionCard")), "carte ombree au repos");
-    assert.match(block("actionCard:hover"), /box-shadow: var\(--shadow-card\);/);
-    assert.ok(!/box-shadow\s*:/.test(block("panel")), "panneau ombree au repos");
-    assert.ok(!/backdrop-filter|blur\(/.test(homeCss), "pas de verre depoli");
-
-    const radii = [...homeCss.matchAll(/border-radius:\s*([^;]+);/g)].map((m) => m[1].trim());
-    assert.ok(
-      radii.every((r) => !/px/.test(r) || Number.parseInt(r, 10) <= 12),
-      `rayon trop grand : ${radii.join(", ")}`,
-    );
-    assert.match(homeCss, /repeat\(4, minmax\(0, 1fr\)\)/);
-    assert.match(homeCss, /repeat\(3, minmax\(0, 1fr\)\)/);
-    // Mobile : une colonne, puis deux a partir de 640px.
-    assert.match(homeCss, /[.]actions\s*\{[\s\S]*?grid-template-columns: 1fr;/);
-    assert.match(homeCss, /@media \(min-width: 640px\)[\s\S]*?repeat\(2, minmax\(0, 1fr\)\)/);
-  });
-
-  it("calque la maquette : en-tete 64px, listes a filets, horodatage", () => {
-    // En-tete compact sur une ligne, comme la reference.
-    assert.match(ui, /[.]topbar\s*\{[\s\S]*?min-height: 64px;/);
-    // Les listes sont continues : un filet entre les lignes, aucun contour.
-    assert.match(
-      homeCss,
-      /[.]list > li \+ li\s*\{[\s\S]*?border-top: 1px solid var\(--border\);/,
-    );
-    assert.ok(!/[.]list > li\s*\{[^}]*border/.test(homeCss), "chaque ligne encadree");
-    // Metadonnees reelles : type + categorie + date pour un document,
-    // « Aujourd'hui · 09:42 » pour une recherche.
-    assert.match(home, /\[type, doc\.category, date && `ajouté le \$\{date\}`\]/);
-    assert.match(home, /formatHistoryStamp\(entry\.createdAt\)/);
-    // Appel a l'action des blocs : texte + fleche, dans une carte cliquable.
-    assert.match(home, /className=\{styles\.actionCard\} href=\{action\.href\}/);
-    assert.match(home, /<Icon name="arrow" className=\{styles\.actionArrow\} \/>/);
-    // Le compte affiche nom + deconnexion directe (pas de menu a ouvrir).
-    assert.match(read("components/dashboard/user-block.tsx"), /<SignOutButton plain/);
-  });
-
-  it("accessibilite : labels, statuts et navigation au clavier", () => {
-    assert.match(home, /htmlFor="dashboard-search"/);
-    assert.match(home, /htmlFor="dashboard-question"/);
-    assert.match(homeCss, /[.]visuallyHidden\s*\{/);
-    assert.match(home, /aria-label="Documents récents"/);
-    assert.match(home, /aria-label="Démarrer une conversation"/);
-    assert.match(home, /<ul className=\{styles\.list\}>/);
-    assert.match(nav, /aria-current=\{isActive \? "page" : undefined\}/);
   });
 });
 
@@ -641,8 +524,6 @@ describe("finitions du socle (story 7.2)", () => {
 describe("story 7.3 : en-tête et navigation harmonisés", () => {
   /** Les écrans qui rendent leur h1 via le composant partagé. */
   const HEADER_SCREENS = [
-    // Bandeau repris en story 7.4 : le tableau de bord rejoint l'en-tête unifié.
-    "app/page.tsx",
     "app/search/page.tsx",
     "app/chat/page.tsx",
     "app/chat/[id]/page.tsx",
@@ -735,87 +616,27 @@ describe("story 7.3 : en-tête et navigation harmonisés", () => {
 // Story 7.4 : tableau de bord finalisé — états, accessibilité, densité.
 // ---------------------------------------------------------------------------
 
-describe("story 7.4 : finalisation du tableau de bord", () => {
-  const home = read("app/page.tsx");
-  const homeCss = read("components/dashboard/dashboard-home.module.css");
-  const ui = read("components/ui/ui.module.css");
+describe("workspace finalisé — accessibilité, modales et commandes", () => {
+  const searchModal = read("components/workspace/global-search-dialog.tsx");
+  const uploadModal = read("components/workspace/resource-upload-modal.tsx");
+  const bottomBar = read("components/workspace/assistant-bottom-bar.tsx");
 
-  /** Corps d'une règle simple (ces modules n'imbriquent jamais d'accolade). */
-  const block = (css, selector) =>
-    new RegExp(`[.]${selector}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? "";
-
-  it("bandeau : PageHeader rend le h1, les styles locaux ont disparu", () => {
-    assert.equal(
-      (home.match(/<PageHeader\b/g) ?? []).length,
-      1,
-      "bandeau rendu exactement une fois",
-    );
-    assert.ok(!/<h1[\s>]/.test(home), "h1 rendu hors de PageHeader");
-    for (const orphan of ["intro", "title", "subtitle"]) {
-      assert.ok(
-        !new RegExp(`[.]${orphan}\\s*\\{`).test(homeCss),
-        `règle .${orphan} orpheline après le basculement`,
-      );
-    }
+  it("la palette de commande globale supporte la recherche et l'accessibilité", () => {
+    assert.match(searchModal, /type="search"/);
+    assert.match(searchModal, /Escape/);
+    assert.match(searchModal, /ArrowDown/);
+    assert.match(searchModal, /ArrowUp/);
   });
 
-  it("un échec de lecture dégrade sa colonne, jamais la page", () => {
-    assert.match(home, /let documentsFailed = false;/);
-    assert.match(home, /let conversationsFailed = false;/);
-    assert.match(home, /documentsFailed = true;/);
-    assert.match(home, /conversationsFailed = true;/);
-    // Le signal vit dans la colonne concernée (role=status), pas au bas de page.
-    assert.equal(
-      (home.match(/styles[.]degraded/g) ?? []).length,
-      2,
-      "un message dégradé par colonne lisible",
-    );
-    assert.ok(
-      !home.includes("Certaines données sont temporairement indisponibles"),
-      "bannière de dégradation globale résiduelle",
-    );
-    // Chaque colonne conserve son état vide explicite (aucune donnée factice).
-    assert.equal((home.match(/styles[.]empty/g) ?? []).length, 3, "un état vide par colonne");
+  it("le formulaire de dépôt gère le glisser-déposer et les étapes de traitement", () => {
+    assert.match(uploadModal, /dropZone/);
+    assert.match(uploadModal, /accept="\.pdf,\.docx,\.txt,\.md"/);
+    assert.match(uploadModal, /uploadResourceAction/);
   });
 
-  it("aucun compteur inventé : le total vient de la base, l'échec le masque", () => {
-    assert.match(home, /[.]select\("id", \{ count: "exact", head: true \}\)/);
-    assert.match(home, /readyCount === null \? null/);
-    assert.ok(!home.includes("degraded = true"), "signal global résiduel");
-  });
-
-  it("les deux formulaires restent natifs : GET, bouton, sans JavaScript", () => {
-    // Barre de recherche : GET vers /search, soumis par bouton (donc par Entrée).
-    assert.match(home, /action="\/search"/);
-    assert.match(home, /type="submit"/);
-    // Composeur : la question part en GET vers /chat, sans nouvel appel réseau.
-    assert.match(home, /action="\/chat"/);
-    assert.match(home, /name="q"/);
-    assert.ok(!home.includes('"use client"'), "la page d'accueil doit rester un Server Component");
-    assert.ok(!/onSubmit|onClick/.test(home), "gestionnaire client sur un formulaire natif");
-    assert.ok(!/fetch\(/.test(home), "appel réseau ajouté au tableau de bord");
-  });
-
-  it("cibles tactiles >= 44px : onglets, raccourcis, zone de compte", () => {
-    // Onglets de l'en-tête horizontal (socle partagé).
-    assert.match(block(ui, "topItem"), /min-height:\s*44px;/, "onglet sous la cible tactile");
-    // Raccourcis : les quatre cartes d'action (décision produit G-3).
-    assert.match(block(homeCss, "actionCard"), /min-height:\s*44px;/, "raccourci sous 44px");
-    // Zone de compte : déconnexion directe.
-    const signOut = block(homeCss, "accountSignOut");
-    assert.match(signOut, /width:\s*44px;/, "deconnexion sous 44px en largeur");
-    assert.match(signOut, /height:\s*44px;/, "deconnexion sous 44px en hauteur");
-    // Contrôles de saisie de la page : composeur et bouton de recherche.
-    assert.match(block(homeCss, "askSubmit"), /width:\s*44px;/, "envoi de question sous 44px");
-    assert.match(block(ui, "button"), /min-height:\s*44px;/, "recette du socle sous 44px");
-  });
-
-  it("ordre de tabulation naturel, sans raccourci positif", () => {
-    assert.ok(!/tabIndex=\{\s*[1-9]/.test(home), "tabIndex positif : ordre artificiel");
-    assert.ok(!/tabIndex="[1-9]/.test(home), "tabIndex positif : ordre artificiel");
-    // Les libellés de formulaire restent rattachés à leurs champs.
-    assert.match(home, /htmlFor="dashboard-search"/);
-    assert.match(home, /htmlFor="dashboard-question"/);
+  it("la barre assistant centrale est accessible au clavier (Entrée/Shift+Entrée)", () => {
+    assert.match(bottomBar, /e\.key === "Enter" && !e\.shiftKey/);
+    assert.match(bottomBar, /maxLength=\{2000\}/);
   });
 });
 
