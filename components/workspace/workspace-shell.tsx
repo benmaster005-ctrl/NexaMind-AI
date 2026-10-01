@@ -15,6 +15,10 @@ import {
   type ResourceData,
 } from "@/app/actions/workspace";
 import {
+  deleteSearchHistoryAction,
+  clearAllSearchHistoryAction,
+} from "@/app/search/actions";
+import {
   initialChatStreamState,
   reduceChatEvents,
   type ChatStreamState,
@@ -432,6 +436,16 @@ export default function WorkspaceShell({
     // We already keep conversational continuity
   };
 
+  const handleDeleteSearch = async (id: string) => {
+    setSearches((prev) => prev.filter((s) => s.id !== id));
+    await deleteSearchHistoryAction(id);
+  };
+
+  const handleClearAllSearches = async () => {
+    setSearches([]);
+    await clearAllSearchHistoryAction();
+  };
+
   const handleUploadSuccess = async (newDocTitle: string, newDocCategory: string) => {
     // Re-fetch documents or add to state
     try {
@@ -544,6 +558,8 @@ export default function WorkspaceShell({
           onCloseMobile={() => setIsMobileRightPanelOpen(false)}
           isCollapsed={isRightCollapsed}
           onToggleCollapse={() => setIsRightCollapsed((p) => !p)}
+          onDeleteSearch={handleDeleteSearch}
+          onClearAllSearches={handleClearAllSearches}
         />
       </div>
 
@@ -556,6 +572,7 @@ export default function WorkspaceShell({
           handleSelectDocumentById(resId, chunkId);
         }}
         recentSearches={searches}
+        onDeleteSearch={handleDeleteSearch}
       />
 
       {/* 5. Resource Upload Modal */}

@@ -10,7 +10,7 @@
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-import { deleteSearchEntry } from "@/lib/search/history-store";
+import { deleteSearchEntry, clearSearchHistory } from "@/lib/search/history-store";
 
 export interface DeleteSearchHistoryResult {
   success: boolean;
@@ -47,5 +47,24 @@ export async function deleteSearchHistoryAction(
     return { success: true, message: "" };
   } catch {
     return { success: false, message: MSG_INVALID };
+  }
+}
+
+export async function clearAllSearchHistoryAction(): Promise<DeleteSearchHistoryResult> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { success: false, message: MSG_INVALID };
+
+    const cleared = await clearSearchHistory({ client: supabase });
+    if (!cleared) return { success: false, message: "Impossible de supprimer l'historique." };
+
+    revalidatePath("/search");
+    revalidatePath("/history");
+    return { success: true, message: "" };
+  } catch {
+    return { success: false, message: "Erreur technique lors de la suppression." };
   }
 }

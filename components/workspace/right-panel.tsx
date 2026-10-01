@@ -44,6 +44,8 @@ interface RightPanelProps {
   onCloseMobile?: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  onDeleteSearch?: (id: string) => void;
+  onClearAllSearches?: () => void;
 }
 
 function AnswerLine({
@@ -142,6 +144,8 @@ export default function RightPanel({
   onCloseMobile,
   isCollapsed = false,
   onToggleCollapse,
+  onDeleteSearch,
+  onClearAllSearches,
 }: RightPanelProps) {
   const [composerInput, setComposerInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -258,11 +262,23 @@ export default function RightPanel({
         {mode === "history" ? (
           /* --- MODE HISTORIQUE --- */
           <div className={styles.historySection}>
-            <div className={styles.sectionHeader}>Recherches récentes</div>
+            <div className={styles.historySectionHeaderRow}>
+              <div className={styles.sectionHeader}>Recherches récentes</div>
+              {searches.length > 0 && onClearAllSearches ? (
+                <button
+                  type="button"
+                  className={styles.clearHistoryAction}
+                  onClick={onClearAllSearches}
+                  title="Effacer tout l'historique de recherche"
+                >
+                  Effacer tout
+                </button>
+              ) : null}
+            </div>
             {searches.length > 0 ? (
               <ul className={styles.historyList} role="list">
                 {searches.slice(0, 10).map((item) => (
-                  <li key={item.id}>
+                  <li key={item.id} className={styles.historyItemRow}>
                     <button
                       type="button"
                       className={`${styles.historyItemLink} ${styles.wFullLeft}`}
@@ -276,6 +292,20 @@ export default function RightPanel({
                         {formatHistoryStamp(item.createdAt)} · {item.resultCount} résultat{item.resultCount > 1 ? "s" : ""}
                       </span>
                     </button>
+                    {onDeleteSearch ? (
+                      <button
+                        type="button"
+                        className={styles.historyItemDeleteAction}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteSearch(item.id);
+                        }}
+                        aria-label={`Supprimer ${item.query} de l'historique`}
+                        title="Supprimer cette recherche"
+                      >
+                        <Icon name="trash" />
+                      </button>
+                    ) : null}
                   </li>
                 ))}
               </ul>

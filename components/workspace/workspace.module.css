@@ -1240,6 +1240,28 @@
   margin: var(--space-xs) 0;
 }
 
+.historySectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clearHistoryAction {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: color 0.12s ease, background-color 0.12s ease;
+}
+
+.clearHistoryAction:hover {
+  color: var(--danger-text);
+  background-color: var(--danger-subtle);
+}
+
 .historyList {
   list-style: none;
   display: flex;
@@ -1247,7 +1269,25 @@
   gap: var(--space-xs);
 }
 
+.historyItemRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.12s ease;
+}
+
+.historyItemRow:hover {
+  background-color: var(--surface-sunken);
+}
+
+.historyItemRow:hover .historyItemDeleteAction {
+  opacity: 1;
+}
+
 .historyItemLink {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   padding: var(--space-xs) var(--space-sm);
@@ -1257,10 +1297,40 @@
   text-decoration: none;
   color: var(--text);
   transition: background-color 0.12s ease;
+  cursor: pointer;
 }
 
-.historyItemLink:hover {
-  background-color: var(--surface-sunken);
+.historyItemDeleteAction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-right: var(--space-xs);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  flex-shrink: 0;
+  transition: opacity 0.12s ease, color 0.12s ease, background-color 0.12s ease;
+}
+
+.historyItemDeleteAction svg {
+  width: 14px;
+  height: 14px;
+}
+
+.historyItemDeleteAction:hover {
+  color: var(--danger-text);
+  background-color: var(--danger-subtle);
+}
+
+@media (max-width: 1023px) {
+  .historyItemDeleteAction {
+    opacity: 0.7;
+  }
 }
 
 .historyItemTitle {

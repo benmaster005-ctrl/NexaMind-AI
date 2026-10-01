@@ -11,6 +11,7 @@ interface GlobalSearchDialogProps {
   onClose: () => void;
   onSelectResult: (resourceId: string, chunkId: string | null, category: string) => void;
   recentSearches: SearchHistoryItem[];
+  onDeleteSearch?: (id: string) => void;
 }
 
 export default function GlobalSearchDialog({
@@ -18,6 +19,7 @@ export default function GlobalSearchDialog({
   onClose,
   onSelectResult,
   recentSearches,
+  onDeleteSearch,
 }: GlobalSearchDialogProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -190,17 +192,32 @@ export default function GlobalSearchDialog({
             <div>
               <div className={styles.sectionHeader}>Recherches récentes</div>
               {recentSearches.slice(0, 5).map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  className={styles.commandRow}
-                  onClick={() => setQuery(s.query)}
-                >
-                  <div className={styles.commandRowTitle}>
-                    <span>{s.query}</span>
-                    <span className={styles.formatTag}>{s.resultCount} résultat{s.resultCount > 1 ? "s" : ""}</span>
-                  </div>
-                </button>
+                <div key={s.id} className={styles.historyItemRow}>
+                  <button
+                    type="button"
+                    className={styles.commandRow}
+                    onClick={() => setQuery(s.query)}
+                  >
+                    <div className={styles.commandRowTitle}>
+                      <span>{s.query}</span>
+                      <span className={styles.formatTag}>{s.resultCount} résultat{s.resultCount > 1 ? "s" : ""}</span>
+                    </div>
+                  </button>
+                  {onDeleteSearch ? (
+                    <button
+                      type="button"
+                      className={styles.historyItemDeleteAction}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteSearch(s.id);
+                      }}
+                      aria-label={`Supprimer ${s.query} de l'historique`}
+                      title="Supprimer cette recherche"
+                    >
+                      <Icon name="trash" />
+                    </button>
+                  ) : null}
+                </div>
               ))}
             </div>
           ) : (

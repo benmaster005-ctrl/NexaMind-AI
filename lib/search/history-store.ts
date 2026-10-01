@@ -97,3 +97,18 @@ export async function deleteSearchEntry(input: {
     return false;
   }
 }
+
+/** Supprime tout l'historique de recherche de l'utilisateur courant (RLS). */
+export async function clearSearchHistory(input: {
+  client: SearchHistoryClient;
+}): Promise<boolean> {
+  try {
+    const { error } = await input.client
+      .from("search_history")
+      .delete()
+      .not("id", "is", null);
+    return !error;
+  } catch {
+    return false;
+  }
+}
