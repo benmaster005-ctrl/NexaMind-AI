@@ -68,7 +68,12 @@ export default function AssistantBottomBar({
         />
         <button
           type="button"
-          className={styles.bottomSubmitAction}
+          className={[
+            styles.bottomSubmitAction,
+            isGenerating ? styles.bottomSubmitGenerating : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           onClick={handleSubmit}
           disabled={!canSubmit}
           aria-label="Envoyer la question"
