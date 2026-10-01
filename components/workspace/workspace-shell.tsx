@@ -129,6 +129,10 @@ export default function WorkspaceShell({
   const [isOpenMobileSidebar, setIsOpenMobileSidebar] = useState(false);
   const [isMobileRightPanelOpen, setIsMobileRightPanelOpen] = useState(false);
 
+  // Collapsible sidebars (desktop only)
+  const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
+  const [isRightCollapsed, setIsRightCollapsed] = useState(false);
+
   // Apply theme dynamically to document root whenever theme state changes
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -499,6 +503,8 @@ export default function WorkspaceShell({
           onOpenUpload={() => setIsUploadOpen(true)}
           isOpenMobile={isOpenMobileSidebar}
           onCloseMobile={() => setIsOpenMobileSidebar(false)}
+          isCollapsed={isLeftCollapsed}
+          onToggleCollapse={() => setIsLeftCollapsed((p) => !p)}
         />
 
         {/* Center Workspace: Document Reader + Fixed Bottom Assistant Bar */}
@@ -536,6 +542,8 @@ export default function WorkspaceShell({
           onNewConversation={handleStartNewConversation}
           isOpenMobile={isMobileRightPanelOpen}
           onCloseMobile={() => setIsMobileRightPanelOpen(false)}
+          isCollapsed={isRightCollapsed}
+          onToggleCollapse={() => setIsRightCollapsed((p) => !p)}
         />
       </div>
 

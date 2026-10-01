@@ -42,6 +42,8 @@ interface RightPanelProps {
   onNewConversation: () => void;
   isOpenMobile?: boolean;
   onCloseMobile?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 function AnswerLine({
@@ -138,6 +140,8 @@ export default function RightPanel({
   onNewConversation,
   isOpenMobile,
   onCloseMobile,
+  isCollapsed = false,
+  onToggleCollapse,
 }: RightPanelProps) {
   const [composerInput, setComposerInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -171,62 +175,86 @@ export default function RightPanel({
       ) : null}
 
       <aside
-        className={`${styles.rightPane} ${isOpenMobile ? styles.rightPaneOpen : ""}`}
+        className={`${styles.rightPane} ${isOpenMobile ? styles.rightPaneOpen : ""} ${isCollapsed && !isOpenMobile ? styles.rightPaneCollapsed : ""}`}
         aria-label="Volet secondaire : Historique et Assistant"
       >
-        <div className={styles.rightPaneHeader}>
-          <div className={styles.rightPaneTabs}>
-            {isOpenMobile ? (
-              <button
-                type="button"
-                className={`${styles.drawerBackAction} ${styles.mobileOnly}`}
-                onClick={onCloseMobile}
-                aria-label="Fermer le volet"
-              >
-                <Icon name="arrow" className={styles.iconRotate180} />
-              </button>
-            ) : null}
+        {isCollapsed && !isOpenMobile ? (
+          <div className={styles.rightPaneCollapseRail}>
             <button
               type="button"
-              className={`${styles.rightPaneTab} ${mode === "history" ? styles.rightPaneTabActive : ""}`}
-              onClick={() => onSwitchMode("history")}
+              className={styles.rightPaneCollapseControl}
+              onClick={onToggleCollapse}
+              aria-label="Développer le volet latéral"
+              title="Développer le volet latéral"
             >
-              Historique
-            </button>
-            <button
-              type="button"
-              className={`${styles.rightPaneTab} ${mode === "chat" ? styles.rightPaneTabActive : ""}`}
-              onClick={() => onSwitchMode("chat")}
-            >
-              Assistant AI
+              <Icon name="chevronRight" className={styles.iconRotate180} />
             </button>
           </div>
+        ) : (
+          <>
+            <div className={styles.rightPaneHeader}>
+              <div className={styles.rightPaneTabs}>
+                {isOpenMobile ? (
+                  <button
+                    type="button"
+                    className={`${styles.drawerBackAction} ${styles.mobileOnly}`}
+                    onClick={onCloseMobile}
+                    aria-label="Fermer le volet"
+                  >
+                    <Icon name="arrow" className={styles.iconRotate180} />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={`${styles.rightPaneTab} ${mode === "history" ? styles.rightPaneTabActive : ""}`}
+                  onClick={() => onSwitchMode("history")}
+                >
+                  Historique
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.rightPaneTab} ${mode === "chat" ? styles.rightPaneTabActive : ""}`}
+                  onClick={() => onSwitchMode("chat")}
+                >
+                  Assistant AI
+                </button>
+              </div>
 
-          <div className={styles.headerRightControls}>
-            {mode === "chat" ? (
-              <button
-                type="button"
-                className={styles.formatTag}
-                onClick={onNewConversation}
-                title="Nouvelle conversation"
-              >
-                + Nouveau
-              </button>
-            ) : null}
-            {isOpenMobile ? (
-              <button
-                type="button"
-                className={`${styles.drawerCloseControl} ${styles.mobileOnly}`}
-                onClick={onCloseMobile}
-                aria-label="Fermer"
-              >
-                <Icon name="close" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+              <div className={styles.headerRightControls}>
+                {mode === "chat" ? (
+                  <button
+                    type="button"
+                    className={styles.formatTag}
+                    onClick={onNewConversation}
+                    title="Nouvelle conversation"
+                  >
+                    + Nouveau
+                  </button>
+                ) : null}
+                {isOpenMobile ? (
+                  <button
+                    type="button"
+                    className={`${styles.drawerCloseControl} ${styles.mobileOnly}`}
+                    onClick={onCloseMobile}
+                    aria-label="Fermer"
+                  >
+                    <Icon name="close" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className={`${styles.rightPaneCollapseControl} ${styles.desktopOnly}`}
+                    onClick={onToggleCollapse}
+                    aria-label="Réduire le volet latéral"
+                    title="Réduire le volet latéral"
+                  >
+                    <Icon name="chevronRight" />
+                  </button>
+                )}
+              </div>
+            </div>
 
-      <div className={styles.rightPaneContent}>
+            <div className={styles.rightPaneContent}>
         {mode === "history" ? (
           /* --- MODE HISTORIQUE --- */
           <div className={styles.historySection}>
@@ -381,6 +409,8 @@ export default function RightPanel({
           </>
         )}
       </div>
+      </>
+    )}
     </aside>
     </>
   );

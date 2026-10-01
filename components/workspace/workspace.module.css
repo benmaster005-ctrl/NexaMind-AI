@@ -251,6 +251,61 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebarCollapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.sidebarCollapseControl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.sidebarCollapseControl:hover {
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+.sidebarCollapseRail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--space-sm);
+  gap: var(--space-xs);
+  width: 40px;
+  overflow: hidden;
+}
+
+.sidebarTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid var(--border);
+  gap: var(--space-xs);
+  min-height: 44px;
+}
+
+.sidebarTopRowTitle {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .sidebarTop {
@@ -965,6 +1020,40 @@
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rightPaneCollapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.rightPaneCollapseControl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.rightPaneCollapseControl:hover {
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+.rightPaneCollapseRail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--space-sm);
+  gap: var(--space-xs);
+  width: 40px;
   overflow: hidden;
 }
 

@@ -15,6 +15,8 @@ interface DocumentSidebarProps {
   onOpenUpload: () => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export default function DocumentSidebar({
@@ -26,6 +28,8 @@ export default function DocumentSidebar({
   onOpenUpload,
   isOpenMobile,
   onCloseMobile,
+  isCollapsed = false,
+  onToggleCollapse,
 }: DocumentSidebarProps) {
   // Accordion state: keep track of collapsed categories
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
@@ -87,10 +91,160 @@ export default function DocumentSidebar({
       ) : null}
 
       <aside
-        className={`${styles.sidebar} ${isOpenMobile ? styles.sidebarOpen : ""}`}
+        className={`${styles.sidebar} ${isOpenMobile ? styles.sidebarOpen : ""} ${isCollapsed ? styles.sidebarCollapsed : ""} ${styles.desktopOnly}`}
         aria-label="Navigation de la bibliothèque documentaire"
       >
+        {/* Mobile header — only shown in mobile drawer mode */}
         <div className={`${styles.drawerHeader} ${styles.mobileOnly}`}>
+          <div className={styles.drawerTitleWrap}>
+            <button
+              type="button"
+              className={styles.drawerBackAction}
+              onClick={onCloseMobile}
+              aria-label="Fermer la bibliothèque"
+            >
+              <Icon name="arrow" className={styles.iconRotate180} />
+            </button>
+            <span className={styles.drawerTitle}>Bibliothèque</span>
+          </div>
+          <button
+            type="button"
+            className={styles.drawerCloseControl}
+            onClick={onCloseMobile}
+            aria-label="Fermer"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+
+        {/* Collapsed rail — only the toggle button visible */}
+        {isCollapsed ? (
+          <div className={styles.sidebarCollapseRail}>
+            <button
+              type="button"
+              className={styles.sidebarCollapseControl}
+              onClick={onToggleCollapse}
+              aria-label="Développer la bibliothèque"
+              title="Développer la bibliothèque"
+            >
+              <Icon name="chevronRight" />
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Top row with title + collapse toggle */}
+            <div className={styles.sidebarTopRow}>
+              <span className={styles.sidebarTopRowTitle}>Bibliothèque</span>
+              <button
+                type="button"
+                className={styles.sidebarCollapseControl}
+                onClick={onToggleCollapse}
+                aria-label="Réduire la bibliothèque"
+                title="Réduire la bibliothèque"
+              >
+                <Icon name="chevronRight" className={styles.iconRotate180} />
+              </button>
+            </div>
+
+            <div className={styles.sidebarTop}>
+              <button
+                type="button"
+                className={styles.addResourceAction}
+                onClick={() => {
+                  onOpenUpload();
+                  onCloseMobile();
+                }}
+              >
+                <Icon name="plus" />
+                <span>Ajouter une ressource</span>
+              </button>
+            </div>
+
+          <div className={styles.sidebarScroll}>
+            {/* Section 1: MES RESSOURCES */}
+            {myDocuments.length > 0 ? (
+              <div className={styles.sidebarSection}>
+                <div className={styles.sectionHeader}>Mes ressources</div>
+                <button
+                  type="button"
+                  className={styles.accordionHeader}
+                  onClick={() => setIsMyDocsCollapsed(!isMyDocsCollapsed)}
+                  aria-expanded={!isMyDocsCollapsed}
+                >
+                  <span className={styles.accordionTitle}>
+                    <Icon name={isMyDocsCollapsed ? "chevronRight" : "chevronDown"} />
+                    <span>Mes documents</span>
+                  </span>
+                  <span className={styles.categoryBadge}>{myDocuments.length}</span>
+                </button>
+                {!isMyDocsCollapsed ? (
+                  <ul className={styles.docList} role="list">
+                    {myDocuments.map(renderDocumentRow)}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
+
+            {/* Section 2: RESSOURCES DE L'ENTREPRISE */}
+            <div className={styles.sidebarSection}>
+              <div className={styles.sectionHeader}>Ressources de l&apos;entreprise</div>
+
+              {isAllCategories ? (
+                // Mode "Toutes" : affichage de toutes les catégories en accordéon
+                Array.from(categoriesMap.entries()).map(([catName, catDocs]) => {
+                  const isCategoryCollapsed = Boolean(collapsedCategories[catName]);
+                  return (
+                    <div key={catName} className={styles.accordionWrap}>
+                      <button
+                        type="button"
+                        className={styles.accordionHeader}
+                        onClick={() => toggleCategory(catName)}
+                        aria-expanded={!isCategoryCollapsed}
+                      >
+                        <span className={styles.accordionTitle}>
+                          <Icon name={isCategoryCollapsed ? "chevronRight" : "chevronDown"} />
+                          <span>{catName}</span>
+                        </span>
+                        <span className={styles.categoryBadge}>{catDocs.length}</span>
+                      </button>
+                      {!isCategoryCollapsed ? (
+                        <ul className={styles.docList} role="list">
+                          {catDocs.map(renderDocumentRow)}
+                        </ul>
+                      ) : null}
+                    </div>
+                  );
+                })
+              ) : (
+                // Mode catégorie spécifique : liste des documents de cette catégorie
+                <ul className={styles.docList} role="list">
+                  {filteredCompanyDocuments.length > 0 ? (
+                    filteredCompanyDocuments.map(renderDocumentRow)
+                  ) : (
+                    <li className={styles.emptyNotice}>
+                      Aucun document dans cette catégorie.
+                    </li>
+                  )}
+                </ul>
+              )}
+
+              {documents.length === 0 ? (
+                <div className={styles.emptyNotice}>
+                  Aucun document pour le moment.
+                </div>
+              ) : null}
+            </div>
+          </div>
+          </>
+        )}
+      </aside>
+
+      {/* Mobile sidebar — separate from the desktop collapsed one */}
+      <aside
+        className={`${styles.sidebar} ${isOpenMobile ? styles.sidebarOpen : ""} ${styles.mobileOnly}`}
+        aria-label="Navigation de la bibliothèque documentaire (mobile)"
+      >
+        <div className={styles.drawerHeader}>
           <div className={styles.drawerTitleWrap}>
             <button
               type="button"
@@ -126,82 +280,24 @@ export default function DocumentSidebar({
           </button>
         </div>
 
-      <div className={styles.sidebarScroll}>
-        {/* Section 1: MES RESSOURCES */}
-        {myDocuments.length > 0 ? (
-          <div className={styles.sidebarSection}>
-            <div className={styles.sectionHeader}>Mes ressources</div>
-            <button
-              type="button"
-              className={styles.accordionHeader}
-              onClick={() => setIsMyDocsCollapsed(!isMyDocsCollapsed)}
-              aria-expanded={!isMyDocsCollapsed}
-            >
-              <span className={styles.accordionTitle}>
-                <Icon name={isMyDocsCollapsed ? "chevronRight" : "chevronDown"} />
-                <span>Mes documents</span>
-              </span>
-              <span className={styles.categoryBadge}>{myDocuments.length}</span>
-            </button>
-            {!isMyDocsCollapsed ? (
+        <div className={styles.sidebarScroll}>
+          {myDocuments.length > 0 ? (
+            <div className={styles.sidebarSection}>
+              <div className={styles.sectionHeader}>Mes ressources</div>
               <ul className={styles.docList} role="list">
                 {myDocuments.map(renderDocumentRow)}
               </ul>
-            ) : null}
-          </div>
-        ) : null}
-
-        {/* Section 2: RESSOURCES DE L'ENTREPRISE */}
-        <div className={styles.sidebarSection}>
-          <div className={styles.sectionHeader}>Ressources de l&apos;entreprise</div>
-
-          {isAllCategories ? (
-            // Mode "Toutes" : affichage de toutes les catégories en accordéon
-            Array.from(categoriesMap.entries()).map(([catName, catDocs]) => {
-              const isCollapsed = Boolean(collapsedCategories[catName]);
-              return (
-                <div key={catName} className={styles.accordionWrap}>
-                  <button
-                    type="button"
-                    className={styles.accordionHeader}
-                    onClick={() => toggleCategory(catName)}
-                    aria-expanded={!isCollapsed}
-                  >
-                    <span className={styles.accordionTitle}>
-                      <Icon name={isCollapsed ? "chevronRight" : "chevronDown"} />
-                      <span>{catName}</span>
-                    </span>
-                    <span className={styles.categoryBadge}>{catDocs.length}</span>
-                  </button>
-                  {!isCollapsed ? (
-                    <ul className={styles.docList} role="list">
-                      {catDocs.map(renderDocumentRow)}
-                    </ul>
-                  ) : null}
-                </div>
-              );
-            })
-          ) : (
-            // Mode catégorie spécifique : liste des documents de cette catégorie
-            <ul className={styles.docList} role="list">
-              {filteredCompanyDocuments.length > 0 ? (
-                filteredCompanyDocuments.map(renderDocumentRow)
-              ) : (
-                <li className={styles.emptyNotice}>
-                  Aucun document dans cette catégorie.
-                </li>
-              )}
-            </ul>
-          )}
-
-          {documents.length === 0 ? (
-            <div className={styles.emptyNotice}>
-              Aucun document pour le moment.
             </div>
           ) : null}
+          <div className={styles.sidebarSection}>
+            <div className={styles.sectionHeader}>Ressources de l&apos;entreprise</div>
+            <ul className={styles.docList} role="list">
+              {companyDocuments.map(renderDocumentRow)}
+            </ul>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
     </>
   );
 }
+
