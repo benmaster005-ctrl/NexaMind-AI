@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Icon } from "@/components/ui/icon";
-import { documentTypeLabel } from "@/lib/dashboard/helpers";
+import { documentTypeLabel, type IconName } from "@/lib/dashboard/helpers";
 import type { ResourceData } from "@/app/actions/workspace";
 import styles from "./workspace.module.css";
 
@@ -19,6 +19,15 @@ interface DocumentSidebarProps {
   onToggleCollapse?: () => void;
 }
 
+function getCategoryIcon(cat: string, isExpanded: boolean): IconName {
+  const lower = cat.toLowerCase();
+  if (lower.includes("procédure") || lower.includes("procedure")) return "check";
+  if (lower.includes("faq") || lower.includes("question")) return "chat";
+  if (lower.includes("guide") || lower.includes("ressource")) return "book";
+  if (lower.includes("mes") || lower.includes("personnel")) return "user";
+  return isExpanded ? "folderOpen" : "folder";
+}
+
 export default function DocumentSidebar({
   documents,
   currentUserId,
@@ -31,27 +40,48 @@ export default function DocumentSidebar({
   isCollapsed = false,
   onToggleCollapse,
 }: DocumentSidebarProps) {
+  // Filter state for quick search in sidebar
+  const [filterQuery, setFilterQuery] = useState("");
+
   // Accordion state: keep track of collapsed categories
   const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
   const [isMyDocsCollapsed, setIsMyDocsCollapsed] = useState(false);
 
-  // Split documents: "Mes ressources" (created_by === currentUserId) vs "Ressources entreprise"
-  const myDocuments = documents.filter((doc) => doc.created_by && doc.created_by === currentUserId);
-  const companyDocuments = documents.filter((doc) => !doc.created_by || doc.created_by !== currentUserId);
+  // Filter predicate
+  const query = filterQuery.trim().toLowerCase();
+  const matchesFilter = (doc: ResourceData) =>
+    !query ||
+    doc.title.toLowerCase().includes(query) ||
+    doc.category.toLowerCase().includes(query);
+
+  // Split documents: "Mes ressources" vs "Ressources entreprise"
+  const myDocuments = useMemo(
+    () => documents.filter((doc) => doc.created_by && doc.created_by === currentUserId && matchesFilter(doc)),
+    [documents, currentUserId, query],
+  );
+  const companyDocuments = useMemo(
+    () => documents.filter((doc) => (!doc.created_by || doc.created_by !== currentUserId) && matchesFilter(doc)),
+    [documents, currentUserId, query],
+  );
 
   // Group company documents by category
-  const categoriesMap = new Map<string, ResourceData[]>();
-  for (const doc of companyDocuments) {
-    const list = categoriesMap.get(doc.category) ?? [];
-    list.push(doc);
-    categoriesMap.set(doc.category, list);
-  }
+  const categoriesMap = useMemo(() => {
+    const map = new Map<string, ResourceData[]>();
+    for (const doc of companyDocuments) {
+      const list = map.get(doc.category) ?? [];
+      list.push(doc);
+      map.set(doc.category, list);
+    }
+    return map;
+  }, [companyDocuments]);
 
   // Filtered view when a specific category is selected
   const isAllCategories = selectedCategory === "Toutes";
-  const filteredCompanyDocuments = isAllCategories
-    ? companyDocuments
-    : companyDocuments.filter((doc) => doc.category === selectedCategory);
+  const filteredCompanyDocuments = useMemo(() => {
+    return isAllCategories
+      ? companyDocuments
+      : companyDocuments.filter((doc) => doc.category === selectedCategory);
+  }, [isAllCategories, companyDocuments, selectedCategory]);
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories((prev) => ({
@@ -68,7 +98,10 @@ export default function DocumentSidebar({
         <button
           type="button"
           className={`${styles.docRow} ${isActive ? styles.docRowActive : ""}`}
-          onClick={() => onSelectDocument(doc)}
+          onClick={() => {
+            onSelectDocument(doc);
+            onCloseMobile?.();
+          }}
           title={doc.title}
           aria-current={isActive ? "page" : undefined}
         >
@@ -117,7 +150,7 @@ export default function DocumentSidebar({
           </button>
         </div>
 
-        {/* Collapsed rail — only the toggle button visible */}
+        {/* Collapsed rail — sleek compact toolbar */}
         {isCollapsed ? (
           <div className={styles.sidebarCollapseRail}>
             <button
@@ -129,112 +162,174 @@ export default function DocumentSidebar({
             >
               <Icon name="sidebar" />
             </button>
+            <button
+              type="button"
+              className={styles.sidebarRailAction}
+              onClick={onOpenUpload}
+              aria-label="Ajouter une ressource"
+              title="Ajouter une ressource"
+            >
+              <Icon name="plus" />
+            </button>
+            <div className={styles.sidebarRailDivider} />
+            <button
+              type="button"
+              className={styles.sidebarRailAction}
+              onClick={onToggleCollapse}
+              aria-label="Bibliothèque de documents"
+              title={`Bibliothèque (${documents.length} documents)`}
+            >
+              <Icon name="book" />
+            </button>
           </div>
         ) : (
           <>
-            {/* Top row with title + collapse toggle */}
+            {/* Top row with Title, Doc Count, and Action Controls */}
             <div className={styles.sidebarTopRow}>
-              <span className={styles.sidebarTopRowTitle}>Bibliothèque</span>
-              <button
-                type="button"
-                className={styles.sidebarCollapseControl}
-                onClick={onToggleCollapse}
-                aria-label="Réduire la bibliothèque"
-                title="Réduire la bibliothèque"
-              >
-                <Icon name="sidebar" />
-              </button>
-            </div>
-
-            <div className={styles.sidebarTop}>
-              <button
-                type="button"
-                className={styles.addResourceAction}
-                onClick={() => {
-                  onOpenUpload();
-                  onCloseMobile();
-                }}
-              >
-                <Icon name="plus" />
-                <span>Ajouter une ressource</span>
-              </button>
-            </div>
-
-          <div className={styles.sidebarScroll}>
-            {/* Section 1: MES RESSOURCES */}
-            {myDocuments.length > 0 ? (
-              <div className={styles.sidebarSection}>
-                <div className={styles.sectionHeader}>Mes ressources</div>
+              <div className={styles.sidebarTopRowTitle}>
+                <span>Bibliothèque</span>
+                <span className={styles.categoryBadge}>{documents.length}</span>
+              </div>
+              <div className={styles.sidebarHeaderActions}>
                 <button
                   type="button"
-                  className={styles.accordionHeader}
-                  onClick={() => setIsMyDocsCollapsed(!isMyDocsCollapsed)}
-                  aria-expanded={!isMyDocsCollapsed}
+                  className={styles.sidebarHeaderAction}
+                  onClick={onOpenUpload}
+                  title="Ajouter une ressource"
+                  aria-label="Ajouter une ressource"
                 >
-                  <span className={styles.accordionTitle}>
-                    <Icon name={isMyDocsCollapsed ? "chevronRight" : "chevronDown"} />
-                    <span>Mes documents</span>
-                  </span>
-                  <span className={styles.categoryBadge}>{myDocuments.length}</span>
+                  <Icon name="plus" />
                 </button>
-                {!isMyDocsCollapsed ? (
-                  <ul className={styles.docList} role="list">
-                    {myDocuments.map(renderDocumentRow)}
-                  </ul>
+                <button
+                  type="button"
+                  className={styles.sidebarCollapseControl}
+                  onClick={onToggleCollapse}
+                  aria-label="Réduire la bibliothèque"
+                  title="Réduire la bibliothèque"
+                >
+                  <Icon name="sidebar" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Filter Search Box */}
+            <div className={styles.sidebarFilterWrap}>
+              <div className={styles.sidebarFilterBox}>
+                <Icon name="search" />
+                <input
+                  type="text"
+                  className={styles.sidebarFilterInput}
+                  placeholder="Filtrer les documents…"
+                  value={filterQuery}
+                  onChange={(e) => setFilterQuery(e.target.value)}
+                  aria-label="Filtrer les documents"
+                />
+                {filterQuery ? (
+                  <button
+                    type="button"
+                    className={styles.sidebarFilterClear}
+                    onClick={() => setFilterQuery("")}
+                    aria-label="Effacer le filtre"
+                  >
+                    <Icon name="close" />
+                  </button>
                 ) : null}
               </div>
-            ) : null}
+            </div>
 
-            {/* Section 2: RESSOURCES DE L'ENTREPRISE */}
-            <div className={styles.sidebarSection}>
-              <div className={styles.sectionHeader}>Ressources de l&apos;entreprise</div>
-
-              {isAllCategories ? (
-                // Mode "Toutes" : affichage de toutes les catégories en accordéon
-                Array.from(categoriesMap.entries()).map(([catName, catDocs]) => {
-                  const isCategoryCollapsed = Boolean(collapsedCategories[catName]);
-                  return (
-                    <div key={catName} className={styles.accordionWrap}>
-                      <button
-                        type="button"
-                        className={styles.accordionHeader}
-                        onClick={() => toggleCategory(catName)}
-                        aria-expanded={!isCategoryCollapsed}
-                      >
-                        <span className={styles.accordionTitle}>
-                          <Icon name={isCategoryCollapsed ? "chevronRight" : "chevronDown"} />
-                          <span>{catName}</span>
+            <div className={styles.sidebarScroll}>
+              {/* Section 1: MES RESSOURCES */}
+              {myDocuments.length > 0 ? (
+                <div className={styles.sidebarSection}>
+                  <div className={styles.sectionHeader}>Mes ressources</div>
+                  <div className={styles.accordionWrap}>
+                    <button
+                      type="button"
+                      className={styles.accordionHeader}
+                      onClick={() => setIsMyDocsCollapsed(!isMyDocsCollapsed)}
+                      aria-expanded={!isMyDocsCollapsed}
+                    >
+                      <span className={styles.accordionTitle}>
+                        <span className={`${styles.accordionChevron} ${!isMyDocsCollapsed ? styles.accordionChevronOpen : ""}`}>
+                          <Icon name="chevronRight" />
                         </span>
-                        <span className={styles.categoryBadge}>{catDocs.length}</span>
-                      </button>
-                      {!isCategoryCollapsed ? (
-                        <ul className={styles.docList} role="list">
-                          {catDocs.map(renderDocumentRow)}
-                        </ul>
-                      ) : null}
-                    </div>
-                  );
-                })
-              ) : (
-                // Mode catégorie spécifique : liste des documents de cette catégorie
-                <ul className={styles.docList} role="list">
-                  {filteredCompanyDocuments.length > 0 ? (
-                    filteredCompanyDocuments.map(renderDocumentRow)
-                  ) : (
-                    <li className={styles.emptyNotice}>
-                      Aucun document dans cette catégorie.
-                    </li>
-                  )}
-                </ul>
-              )}
-
-              {documents.length === 0 ? (
-                <div className={styles.emptyNotice}>
-                  Aucun document pour le moment.
+                        <span className={styles.categoryIcon}>
+                          <Icon name="user" />
+                        </span>
+                        <span className={styles.accordionTitleText}>Mes documents</span>
+                      </span>
+                      <span className={styles.categoryBadge}>{myDocuments.length}</span>
+                    </button>
+                    {!isMyDocsCollapsed ? (
+                      <ul className={styles.nestedDocList} role="list">
+                        {myDocuments.map(renderDocumentRow)}
+                      </ul>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
+
+              {/* Section 2: RESSOURCES DE L'ENTREPRISE */}
+              <div className={styles.sidebarSection}>
+                <div className={styles.sectionHeader}>Ressources de l&apos;entreprise</div>
+
+                {isAllCategories ? (
+                  // Mode "Toutes" : affichage en accordéons organisés par catégorie
+                  Array.from(categoriesMap.entries()).map(([catName, catDocs]) => {
+                    const isCategoryCollapsed = Boolean(collapsedCategories[catName]);
+                    return (
+                      <div key={catName} className={styles.accordionWrap}>
+                        <button
+                          type="button"
+                          className={styles.accordionHeader}
+                          onClick={() => toggleCategory(catName)}
+                          aria-expanded={!isCategoryCollapsed}
+                        >
+                          <span className={styles.accordionTitle}>
+                            <span className={`${styles.accordionChevron} ${!isCategoryCollapsed ? styles.accordionChevronOpen : ""}`}>
+                              <Icon name="chevronRight" />
+                            </span>
+                            <span className={styles.categoryIcon}>
+                              <Icon name={getCategoryIcon(catName, !isCategoryCollapsed)} />
+                            </span>
+                            <span className={styles.accordionTitleText}>{catName}</span>
+                          </span>
+                          <span className={styles.categoryBadge}>{catDocs.length}</span>
+                        </button>
+                        {!isCategoryCollapsed ? (
+                          <ul className={styles.nestedDocList} role="list">
+                            {catDocs.map(renderDocumentRow)}
+                          </ul>
+                        ) : null}
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Mode catégorie spécifique
+                  <ul className={styles.docList} role="list">
+                    {filteredCompanyDocuments.length > 0 ? (
+                      filteredCompanyDocuments.map(renderDocumentRow)
+                    ) : (
+                      <li className={styles.emptyNotice}>
+                        Aucun document dans cette catégorie.
+                      </li>
+                    )}
+                  </ul>
+                )}
+
+                {documents.length === 0 ? (
+                  <div className={styles.emptyNotice}>
+                    Aucun document pour le moment.
+                  </div>
+                ) : null}
+
+                {documents.length > 0 && query && myDocuments.length === 0 && companyDocuments.length === 0 ? (
+                  <div className={styles.emptyNotice}>
+                    Aucun document correspondant à « {filterQuery} ».
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
           </>
         )}
       </aside>
@@ -266,18 +361,28 @@ export default function DocumentSidebar({
           </button>
         </div>
 
-        <div className={styles.sidebarTop}>
-          <button
-            type="button"
-            className={styles.addResourceAction}
-            onClick={() => {
-              onOpenUpload();
-              onCloseMobile();
-            }}
-          >
-            <Icon name="plus" />
-            <span>Ajouter une ressource</span>
-          </button>
+        <div className={styles.sidebarFilterWrap}>
+          <div className={styles.sidebarFilterBox}>
+            <Icon name="search" />
+            <input
+              type="text"
+              className={styles.sidebarFilterInput}
+              placeholder="Filtrer les documents…"
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              aria-label="Filtrer les documents"
+            />
+            {filterQuery ? (
+              <button
+                type="button"
+                className={styles.sidebarFilterClear}
+                onClick={() => setFilterQuery("")}
+                aria-label="Effacer le filtre"
+              >
+                <Icon name="close" />
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <div className={styles.sidebarScroll}>
@@ -300,4 +405,3 @@ export default function DocumentSidebar({
     </>
   );
 }
-

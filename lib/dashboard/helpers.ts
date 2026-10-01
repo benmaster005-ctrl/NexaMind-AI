@@ -36,7 +36,9 @@ export type IconName =
   | "filter"
   | "sidebar"
   | "panelRight"
-  | "arrowUp";
+  | "arrowUp"
+  | "folder"
+  | "folderOpen";
 
 export interface NavItem {
   href: string;
