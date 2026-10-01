@@ -129,6 +129,90 @@ export default function WorkspaceShell({
   const [isOpenMobileSidebar, setIsOpenMobileSidebar] = useState(false);
   const [isMobileRightPanelOpen, setIsMobileRightPanelOpen] = useState(false);
 
+  // Apply theme dynamically to document root whenever theme state changes
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    let styleEl = document.getElementById("nexamind-theme-override") as HTMLStyleElement | null;
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "nexamind-theme-override";
+      document.head.appendChild(styleEl);
+    }
+    const darkCSS = `
+      :root {
+        color-scheme: dark !important;
+        --bg-page: #0b1120 !important;
+        --surface: #111827 !important;
+        --surface-sunken: #0b1120 !important;
+        --bubble-assistant: #111827 !important;
+        --border: #1f2937 !important;
+        --border-strong: #374151 !important;
+        --text: #f9fafb !important;
+        --text-secondary: #d1d5db !important;
+        --text-muted: #9ca3af !important;
+        --primary: #3b82f6 !important;
+        --primary-hover: #60a5fa !important;
+        --on-primary: #ffffff !important;
+        --accent-text: #60a5fa !important;
+        --primary-subtle: #172554 !important;
+        --primary-subtle-strong: #1e3a8a !important;
+        --primary-subtle-border: #1e40af !important;
+        --primary-soft: #1e40af !important;
+        --success-subtle: #052e21 !important;
+        --success-border: #065f46 !important;
+        --success-text: #6ee7b7 !important;
+        --warning-subtle: #3b2f0b !important;
+        --warning-border: #92600a !important;
+        --warning-text: #fde68a !important;
+        --danger-subtle: #3b1518 !important;
+        --danger-border: #7f1d1d !important;
+        --danger-text: #fca5a5 !important;
+        --highlight: #4a3f0b !important;
+        --focus-ring: #60a5fa !important;
+        --shadow-card: none !important;
+        --shadow-sheet: none !important;
+        --scrim: rgb(2 6 23 / 0.66) !important;
+      }
+    `;
+    const lightCSS = `
+      :root {
+        color-scheme: light !important;
+        --bg-page: #f8fafc !important;
+        --surface: #ffffff !important;
+        --surface-sunken: #f1f5f9 !important;
+        --bubble-assistant: #f1f5f9 !important;
+        --border: #e2e8f0 !important;
+        --border-strong: #cbd5e1 !important;
+        --text: #0f172a !important;
+        --text-secondary: #334155 !important;
+        --text-muted: #64748b !important;
+        --primary: #2563eb !important;
+        --primary-hover: #1d4ed8 !important;
+        --on-primary: #ffffff !important;
+        --accent-text: #2563eb !important;
+        --primary-subtle: #eff6ff !important;
+        --primary-subtle-strong: #dbeafe !important;
+        --primary-subtle-border: #93c5fd !important;
+        --primary-soft: #bfdbfe !important;
+        --success-subtle: #ecfdf5 !important;
+        --success-border: #a7f3d0 !important;
+        --success-text: #047857 !important;
+        --warning-subtle: #fef3c7 !important;
+        --warning-border: #fcd34d !important;
+        --warning-text: #78350f !important;
+        --danger-subtle: #fef2f2 !important;
+        --danger-border: #fecaca !important;
+        --danger-text: #b91c1c !important;
+        --highlight: #fef08a !important;
+        --focus-ring: #2563eb !important;
+        --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06) !important;
+        --shadow-sheet: 0 -8px 24px rgb(15 23 42 / 0.16) !important;
+        --scrim: rgb(15 23 42 / 0.45) !important;
+      }
+    `;
+    styleEl.textContent = theme === "dark" ? darkCSS : lightCSS;
+  }, [theme]);
+
   // Initialize theme from system or localStorage on mount
   useEffect(() => {
     try {

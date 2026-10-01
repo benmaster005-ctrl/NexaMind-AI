@@ -20,7 +20,20 @@ export type IconName =
   | "logout"
   | "send"
   | "close"
-  | "arrow";
+  | "arrow"
+  | "sun"
+  | "moon"
+  | "chevronDown"
+  | "chevronRight"
+  | "plus"
+  | "menu"
+  | "user"
+  | "sparkles"
+  | "book"
+  | "check"
+  | "copy"
+  | "trash"
+  | "filter";
 
 export interface NavItem {
   href: string;
