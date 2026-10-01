@@ -187,7 +187,7 @@ export default function RightPanel({
               aria-label="Développer le volet latéral"
               title="Développer le volet latéral"
             >
-              <Icon name="chevronRight" className={styles.iconRotate180} />
+              <Icon name="panelRight" />
             </button>
           </div>
         ) : (
@@ -248,7 +248,7 @@ export default function RightPanel({
                     aria-label="Réduire le volet latéral"
                     title="Réduire le volet latéral"
                   >
-                    <Icon name="chevronRight" />
+                    <Icon name="panelRight" />
                   </button>
                 )}
               </div>

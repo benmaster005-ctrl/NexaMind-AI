@@ -20,7 +20,7 @@ const PATHS: Record<IconName, string> = {
   documents: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z",
   upload: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
   file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8",
-  send: "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z",
+  send: "M12 19V5M5 12l7-7 7 7",
   close: "M18 6L6 18M6 6l12 12",
   arrow: "M5 12h14M12 5l7 7-7 7",
   logout: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
@@ -37,6 +37,9 @@ const PATHS: Record<IconName, string> = {
   copy: "M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.83a2 2 0 0 0-.59-1.42l-4.83-4.83A2 2 0 0 0 15.17 1H10a2 2 0 0 0-2 2zM4 8H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1",
   trash: "M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6",
   filter: "M22 3H2l8 9.46V19l4 2v-8.54L22 3z",
+  sidebar: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zM9 3v18",
+  panelRight: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zM15 3v18",
+  arrowUp: "M12 19V5M5 12l7-7 7 7",
 };
 
 export function Icon({ name, className }: IconProps) {

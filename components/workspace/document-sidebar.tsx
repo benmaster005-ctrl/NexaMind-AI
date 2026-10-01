@@ -127,7 +127,7 @@ export default function DocumentSidebar({
               aria-label="Développer la bibliothèque"
               title="Développer la bibliothèque"
             >
-              <Icon name="chevronRight" />
+              <Icon name="sidebar" />
             </button>
           </div>
         ) : (
@@ -142,7 +142,7 @@ export default function DocumentSidebar({
                 aria-label="Réduire la bibliothèque"
                 title="Réduire la bibliothèque"
               >
-                <Icon name="chevronRight" className={styles.iconRotate180} />
+                <Icon name="sidebar" />
               </button>
             </div>
 

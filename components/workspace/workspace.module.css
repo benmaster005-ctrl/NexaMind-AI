@@ -273,12 +273,21 @@
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   flex-shrink: 0;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+}
+
+.sidebarCollapseControl svg {
+  width: 16px;
+  height: 16px;
 }
 
 .sidebarCollapseControl:hover {
   background-color: var(--surface-sunken);
   color: var(--text);
+}
+
+.sidebarCollapseControl:active {
+  transform: scale(0.95);
 }
 
 .sidebarCollapseRail {
@@ -1047,6 +1056,16 @@
   transform: translateX(100%);
 }
 
+.bottomSubmitAction svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.16s ease;
+}
+
+.bottomSubmitAction:hover:not(:disabled) svg {
+  transform: translateY(-1px);
+}
+
 .bottomSubmitAction:active:not(:disabled) {
   transform: translateY(0) scale(0.95);
   transition: transform 0.08s ease;
@@ -1112,12 +1131,21 @@
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   flex-shrink: 0;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
+}
+
+.rightPaneCollapseControl svg {
+  width: 16px;
+  height: 16px;
 }
 
 .rightPaneCollapseControl:hover {
   background-color: var(--surface-sunken);
   color: var(--text);
+}
+
+.rightPaneCollapseControl:active {
+  transform: scale(0.95);
 }
 
 .rightPaneCollapseRail {

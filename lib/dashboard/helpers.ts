@@ -33,7 +33,10 @@ export type IconName =
   | "check"
   | "copy"
   | "trash"
-  | "filter";
+  | "filter"
+  | "sidebar"
+  | "panelRight"
+  | "arrowUp";
 
 export interface NavItem {
   href: string;
