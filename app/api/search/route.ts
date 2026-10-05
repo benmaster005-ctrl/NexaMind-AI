@@ -61,7 +61,7 @@ export async function GET(request: Request) {
   if (q.trim() && q.trim().length > MAX_QUERY_LENGTH) {
     return NextResponse.json({ error: MSG_TOO_LONG }, { status: 400 });
   }
-  if (!q.trim()) {
+  if (!q.trim() || q.trim().length < 2) {
     return NextResponse.json({ results: [] });
   }
 

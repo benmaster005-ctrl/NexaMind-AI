@@ -13,7 +13,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
-import { deleteSearchHistoryAction } from "@/app/search/actions";
+import { deleteSearchHistoryAction } from "@/app/actions/search";
 import {
   SEARCH_HISTORY_MESSAGES,
   formatResultCount,

@@ -1,7 +1,6 @@
-﻿"use server";
+"use server";
 
 import { randomUUID } from "node:crypto";
-
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
@@ -41,7 +40,7 @@ function getExtension(fileName: string): string {
 }
 
 /**
- * Dépôt documentaire ouvert a tout utilisateur authentifie (FR-5).
+ * Dépôt documentaire ouvert à tout utilisateur authentifié.
  * Valide le fichier (format, 4 Mo — `MAX_UPLOAD_BYTES`), l'envoie au
  * bucket privé `documents`, puis insère la ressource en statut 'En cours'.
  */
@@ -112,17 +111,12 @@ export async function uploadResourceAction(
       .select("id")
       .single();
     if (insertError || !inserted?.id) {
-      // Evite les fichiers orphelins : retire l'objet si l'insert échoue.
       await supabase.storage.from("documents").remove([storagePath]);
       return { success: false, message: MSG_NETWORK };
     }
 
-    // La liste affiche statut, nombre de morceaux et raison d'échec :
-    // on la rafraîchit sans attendre un rechargement manuel.
-    revalidatePath("/documents");
+    revalidatePath("/");
 
-    // Ingestion (story 2.2, FR-6) : extraction du texte + découpage en
-    // morceaux de 400-500 tokens. La vectorisation Gemini arrive en 2.3.
     const resourceId = String(inserted.id);
     try {
       const ingestion = await ingestResource({
@@ -149,8 +143,8 @@ export async function uploadResourceAction(
 }
 
 /**
- * Mise a jour des metadonnees (story 2.4, FR-5).
- * Categorie fermee + tags libres normalises. Ouvert a tout authentifie.
+ * Mise à jour des métadonnées d'un document.
+ * Ouvert à tout utilisateur authentifié.
  */
 export async function updateResourceMetadataAction(
   resourceId: string,
@@ -170,13 +164,13 @@ export async function updateResourceMetadataAction(
     category,
     tags,
   });
-  if (result.success) revalidatePath("/documents");
+  if (result.success) revalidatePath("/");
   return result;
 }
 
 /**
- * Suppression avec dereferencement (story 2.4, FR-7).
- * Delete DB (cascade pgvector) puis objet Storage. Ouvert a tout authentifie.
+ * Suppression avec déréférencement d'un document.
+ * Ouvert à tout utilisateur authentifié.
  */
 export async function deleteResourceAction(
   resourceId: string,
@@ -192,6 +186,6 @@ export async function deleteResourceAction(
     client: supabase,
     resourceId,
   });
-  if (result.success) revalidatePath("/documents");
+  if (result.success) revalidatePath("/");
   return result;
 }

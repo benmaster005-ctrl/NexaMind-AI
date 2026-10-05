@@ -2,7 +2,7 @@
 
 import { useState, useRef, type DragEvent, type ChangeEvent } from "react";
 import { Icon } from "@/components/ui/icon";
-import { uploadResourceAction } from "@/app/(dashboard)/documents/actions";
+import { uploadResourceAction } from "@/app/actions/documents";
 import { RESOURCE_CATEGORIES, MAX_UPLOAD_BYTES } from "@/lib/resources/validation";
 import styles from "./workspace.module.css";
 

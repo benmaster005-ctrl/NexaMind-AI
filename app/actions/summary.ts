@@ -1,16 +1,5 @@
 "use server";
 
-/**
- * Action serveur « Résumer » (story 5.1, FR-14).
- *
- * Accessible a tout utilisateur authentifie. Lecture via RLS
- * (`authenticated_read_resources` / `authenticated_read_chunks`),
- * generation Gemini cote serveur uniquement
- * (AD-4 : la cle ne sort jamais du serveur).
- *
- * Aucune ecriture : le resume n'est ni stocke ni indexe.
- */
-
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
 
@@ -22,14 +11,7 @@ import {
   summarizeResource,
 } from "@/lib/ai/summary";
 
-/**
- * Duree de validite du lien vers le document complet.
- * 15 minutes : le lien doit rester valable le temps que l'utilisateur lit
- * la synthese avant de l'ouvrir.
- */
 const SIGNED_URL_TTL_SECONDS = 900;
-
-/** Bornes de sortie : 8 puces courtes (garde-fou sur le temps de generation). */
 const MAX_OUTPUT_TOKENS = 600;
 
 const UUID_RE =
@@ -37,13 +19,9 @@ const UUID_RE =
 
 export interface SummarizeActionResult {
   success: boolean;
-  /** 5 a 8 puces, vide en cas d'echec. */
   bullets: string[];
-  /** true si la source a depasse le plafond de contexte. */
   partial: boolean;
-  /** Lien signe vers le fichier, null si indisponible ou si echec. */
   documentUrl: string | null;
-  /** Message FR : erreur, ou avertissement « resume partiel ». */
   message: string;
 }
 
@@ -52,8 +30,8 @@ function failure(message: string): SummarizeActionResult {
 }
 
 /**
- * Genere la synthese d'une ressource au statut Pret.
- * Ne leve jamais : toute erreur devient un message FR.
+ * Génère la synthèse d'une ressource au statut Prêt.
+ * Utilisable directement dans le workspace ou les fiches documentaires.
  */
 export async function summarizeResourceAction(
   resourceId: string,
@@ -80,7 +58,6 @@ export async function summarizeResourceAction(
     .maybeSingle();
   if (resourceError || !resource) return failure(SUMMARY_MESSAGES.notFound);
 
-  // Les morceaux sont lus dans l'ordre : le resume suit la lecture du document.
   const { data: chunks, error: chunksError } = await supabase
     .from("document_chunks")
     .select("content")
@@ -116,9 +93,6 @@ export async function summarizeResourceAction(
 
   if (!outcome.ok) return failure(outcome.message);
 
-  // Renvoi vers le document complet (AC) : URL signee, jamais de lecture
-  // directe du fichier par le navigateur. Un lien indisponible n'annule pas
-  // la synthese affichee.
   let documentUrl: string | null = null;
   if (resource.storage_path) {
     try {

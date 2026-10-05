@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { summarizeResourceAction } from "@/app/(dashboard)/resources/[id]/actions";
+import { summarizeResourceAction } from "@/app/actions/summary";
 import styles from "./summary-sheet.module.css";
 
 interface SummarySheetProps {

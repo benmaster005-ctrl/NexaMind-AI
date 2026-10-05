@@ -17,14 +17,14 @@ import {
 import {
   deleteSearchHistoryAction,
   clearAllSearchHistoryAction,
-} from "@/app/search/actions";
+} from "@/app/actions/search";
 import {
   initialChatStreamState,
   reduceChatEvents,
   type ChatStreamState,
 } from "@/lib/chat/ui";
 import type { DocumentView } from "@/lib/resources/view";
-import type { SearchHistoryItem } from "@/lib/search/history";
+import { prependSearchItem, type SearchHistoryItem } from "@/lib/search/history";
 import type { ChatEvent } from "@/lib/ai/chat";
 import styles from "./workspace.module.css";
 
@@ -446,6 +446,15 @@ export default function WorkspaceShell({
     await clearAllSearchHistoryAction();
   };
 
+  /**
+   * Appelé par GlobalSearchDialog après chaque recherche réussie.
+   * Met à jour l'historique de façon optimiste (sans attendre le serveur)
+   * afin que la liste soit immédiatement visible dans le volet droit.
+   */
+  const handleSearchPerformed = (query: string, resultCount: number) => {
+    setSearches((prev) => prependSearchItem(prev, { query, resultCount }));
+  };
+
   const handleUploadSuccess = async (newDocTitle: string, newDocCategory: string) => {
     // Re-fetch documents or add to state
     try {
@@ -573,6 +582,7 @@ export default function WorkspaceShell({
         }}
         recentSearches={searches}
         onDeleteSearch={handleDeleteSearch}
+        onSearchPerformed={handleSearchPerformed}
       />
 
       {/* 5. Resource Upload Modal */}

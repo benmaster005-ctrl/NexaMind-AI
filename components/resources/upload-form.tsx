@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, type FormEvent } from "react";
 
-import { uploadResourceAction } from "@/app/(dashboard)/documents/actions";
+import { uploadResourceAction } from "@/app/actions/documents";
 import { RESOURCE_CATEGORIES } from "@/lib/resources/validation";
 import styles from "./upload-form.module.css";
 

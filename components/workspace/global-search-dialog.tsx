@@ -12,6 +12,34 @@ interface GlobalSearchDialogProps {
   onSelectResult: (resourceId: string, chunkId: string | null, category: string) => void;
   recentSearches: SearchHistoryItem[];
   onDeleteSearch?: (id: string) => void;
+  /** Appelé après chaque recherche réussie pour mettre à jour l'historique en temps réel. */
+  onSearchPerformed?: (query: string, resultCount: number) => void;
+}
+
+/**
+ * Détermine si la saisie constitue un mot complet ou une requête finalisée :
+ * - Si elle se termine par un espace et compte au moins 2 caractères (ex: "rh ", "ia ", "contrat ")
+ * - Si elle contient plusieurs mots (ex: "plan d'action")
+ * - Si c'est un mot d'au moins 3 caractères (ex: "faq", "projet", "finance")
+ *
+ * Évite de déclencher des recherches prématurées et coûteuses sur des lettres isolées ("a", "pr").
+ */
+function isCompleteQuery(rawText: string): boolean {
+  const trimmed = rawText.trim();
+  if (!trimmed) return false;
+
+  // Un espace final indique que l'utilisateur a fini d'écrire son mot
+  if (rawText.endsWith(" ") && trimmed.length >= 2) {
+    return true;
+  }
+
+  // Expression multi-mots
+  if (trimmed.includes(" ") && trimmed.length >= 3) {
+    return true;
+  }
+
+  // Mot isolé : au minimum 3 caractères pour être considéré comme un mot complet
+  return trimmed.length >= 3;
 }
 
 export default function GlobalSearchDialog({
@@ -20,6 +48,7 @@ export default function GlobalSearchDialog({
   onSelectResult,
   recentSearches,
   onDeleteSearch,
+  onSearchPerformed,
 }: GlobalSearchDialogProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -29,6 +58,7 @@ export default function GlobalSearchDialog({
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSearchedQueryRef = useRef<string>("");
 
   useEffect(() => {
     if (isOpen) {
@@ -36,11 +66,52 @@ export default function GlobalSearchDialog({
       setResults([]);
       setSelectedIndex(0);
       setErrorMessage(null);
+      lastSearchedQueryRef.current = "";
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
 
-  // Handle live search with debouncing
+  const performSearch = async (textToSearch: string) => {
+    const trimmed = textToSearch.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setResults([]);
+      setLoading(false);
+      setErrorMessage(null);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    lastSearchedQueryRef.current = trimmed;
+    setLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
+      if (!res.ok) {
+        setErrorMessage("La recherche n'a pas pu être effectuée.");
+        setResults([]);
+        return;
+      }
+      const data = (await res.json()) as { results?: SearchResult[]; error?: string };
+      if (data.error) {
+        setErrorMessage(data.error);
+        setResults([]);
+      } else {
+        const hits = data.results ?? [];
+        setResults(hits);
+        setSelectedIndex(0);
+        // Mise à jour optimiste de l'historique : visible immédiatement dans
+        // le volet droit sans attendre un rechargement de page.
+        onSearchPerformed?.(trimmed, hits.length);
+      }
+    } catch {
+      setErrorMessage("Erreur réseau lors de la recherche.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle live search with debouncing (uniquement lorsqu'un mot complet est saisi)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -51,34 +122,23 @@ export default function GlobalSearchDialog({
       setResults([]);
       setLoading(false);
       setErrorMessage(null);
+      lastSearchedQueryRef.current = "";
       return;
     }
 
-    setLoading(true);
-    setErrorMessage(null);
+    // Si la saisie n'est pas encore un mot complet (ex: 1 lettre "p" ou 2 lettres sans espace) :
+    // On ne lance aucune recherche automatique et on vide les anciens résultats.
+    if (!isCompleteQuery(query)) {
+      setResults([]);
+      setLoading(false);
+      setErrorMessage(null);
+      return;
+    }
 
-    debounceRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
-        if (!res.ok) {
-          setErrorMessage("La recherche n'a pas pu être effectuée.");
-          setResults([]);
-          return;
-        }
-        const data = (await res.json()) as { results?: SearchResult[]; error?: string };
-        if (data.error) {
-          setErrorMessage(data.error);
-          setResults([]);
-        } else {
-          setResults(data.results ?? []);
-          setSelectedIndex(0);
-        }
-      } catch {
-        setErrorMessage("Erreur réseau lors de la recherche.");
-      } finally {
-        setLoading(false);
-      }
-    }, 250);
+    // Temporisation de 400ms pour laisser à l'utilisateur le temps de terminer son mot
+    debounceRef.current = setTimeout(() => {
+      void performSearch(trimmed);
+    }, 400);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -92,21 +152,35 @@ export default function GlobalSearchDialog({
       return;
     }
 
+    const trimmed = query.trim();
+
     if (results.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setSelectedIndex((prev) => (prev + 1) % results.length);
+        return;
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) => (prev - 1 + results.length) % results.length);
+        return;
       } else if (e.key === "Enter") {
-        e.preventDefault();
-        const selected = results[selectedIndex];
-        if (selected) {
-          onSelectResult(selected.resourceId, selected.chunkId, selected.category);
-          onClose();
+        // Si les résultats correspondent à la requête actuelle, on ouvre la sélection
+        if (lastSearchedQueryRef.current.toLowerCase() === trimmed.toLowerCase()) {
+          e.preventDefault();
+          const selected = results[selectedIndex];
+          if (selected) {
+            onSelectResult(selected.resourceId, selected.chunkId, selected.category);
+            onClose();
+            return;
+          }
         }
       }
+    }
+
+    // Si l'utilisateur appuie sur Entrée (validation immédiate sans attendre le debounce)
+    if (e.key === "Enter" && trimmed.length >= 2) {
+      e.preventDefault();
+      void performSearch(trimmed);
     }
   };
 
@@ -187,7 +261,13 @@ export default function GlobalSearchDialog({
               );
             })
           ) : query.trim() ? (
-            <div className={styles.emptyNotice}>Aucun document ne correspond à cette recherche.</div>
+            !isCompleteQuery(query) ? (
+              <div className={styles.emptyNotice}>
+                Tapez un mot complet (au moins 3 lettres) ou appuyez sur Entrée pour rechercher.
+              </div>
+            ) : (
+              <div className={styles.emptyNotice}>Aucun document ne correspond à cette recherche.</div>
+            )
           ) : recentSearches.length > 0 ? (
             <div>
               <div className={styles.sectionHeader}>Recherches récentes</div>
@@ -196,7 +276,10 @@ export default function GlobalSearchDialog({
                   <button
                     type="button"
                     className={styles.commandRow}
-                    onClick={() => setQuery(s.query)}
+                    onClick={() => {
+                      setQuery(s.query);
+                      void performSearch(s.query);
+                    }}
                   >
                     <div className={styles.commandRowTitle}>
                       <span>{s.query}</span>
