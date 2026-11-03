@@ -1,5 +1,8 @@
 /**
- * Source unique des styles — tokens de DESIGN.md (« Clean Tech Slate »).
+ * Source unique des styles — tokens de la charte « NexaMind Entreprise ».
+ *
+ * Shell d'application interne : barre d'application sombre, surfaces
+ * neutres, rayons serres, accent bleu corporate reserve aux actions.
  *
  * Regle (story 7.1) : aucun module CSS ne declare de couleur en dur ; tous
  * consomment ces variables. Comme le theme sombre ne redefinit que les tokens,
@@ -11,46 +14,57 @@
   color-scheme: light dark;
 
   /* --- Surfaces ------------------------------------------------------- */
-  --bg-page: #f8fafc; /* slate_50 — fond de page */
-  --surface: #ffffff; /* cartes, en-tetes, composer (equivalent clair de dark_surface) */
-  --surface-sunken: #f1f5f9; /* slate_100 — blocs secondaires, champs, boutons neutres */
-  --bubble-assistant: #f1f5f9; /* DESIGN.md 2 : bulles assistant en slate_100 */
+  --bg-page: #f3f4f6; /* fond applicatif neutre, legerement grise */
+  --surface: #ffffff; /* panneaux, en-tetes, feuilles de document */
+  --surface-sunken: #f6f7f9; /* champs, blocs secondaires, survols */
+  --surface-nav: #f8f9fb; /* colonnes de navigation (bibliotheque) */
+  --bubble-assistant: #f6f7f9;
+
+  /* --- Barre d'application (shell entreprise, toujours sombre) -------- */
+  --appbar-bg: #0f1c33;
+  --appbar-text: #eef2f8;
+  --appbar-muted: #9fb0c8;
+  --appbar-hover: rgb(255 255 255 / 0.08);
+  --appbar-field: rgb(255 255 255 / 0.07);
+  --appbar-border: rgb(255 255 255 / 0.14);
 
   /* --- Bordures ------------------------------------------------------- */
-  --border: #e2e8f0; /* slate_200 */
-  --border-strong: #cbd5e1; /* slate_300 — champs actifs */
+  --border: #e3e6ea;
+  --border-strong: #c8cdd5;
 
   /* --- Textes --------------------------------------------------------- */
-  --text: #0f172a; /* slate_900 */
-  --text-secondary: #334155; /* slate_700 */
-  --text-muted: #64748b; /* slate_500 — metadonnees */
+  --text: #161b26;
+  --text-secondary: #3b4453;
+  --text-muted: #687183; /* metadonnees */
 
-  /* --- Accent (sobre : reserve aux actions et a l'onglet actif) -------- */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  /* --- Accent corporate (actions, selection, onglet actif) ------------ */
+  --primary: #1d5bbf;
+  --primary-hover: #164a9e;
   --on-primary: #ffffff;
-  --accent-text: #2563eb; /* liens, chiffre cle, onglet actif */
-  --primary-subtle: #eff6ff;
-  --primary-subtle-strong: #dbeafe;
-  --primary-subtle-border: #93c5fd;
-  --primary-soft: #bfdbfe;
+  --accent-text: #1d5bbf; /* liens, chiffre cle, onglet actif */
+  --primary-subtle: #edf3fc;
+  --primary-subtle-strong: #d9e6f8;
+  --primary-subtle-border: #a9c4ec;
+  --primary-soft: #c4d7f3;
 
   /* --- Semantique ----------------------------------------------------- */
-  --success-subtle: #ecfdf5; /* DESIGN.md 2 : semantic.success (#10B981) */
-  --success-border: #a7f3d0;
-  --success-text: #047857;
-  --warning-subtle: #fef3c7;
-  --warning-border: #fcd34d;
-  --warning-text: #78350f;
-  --danger-subtle: #fef2f2;
-  --danger-border: #fecaca;
-  --danger-text: #b91c1c;
-  --highlight: #fef08a; /* surlignage des termes trouves */
-  --focus-ring: #2563eb;
+  --success-subtle: #ecf8f1;
+  --success-border: #a8dcbd;
+  --success-text: #146c3c;
+  --warning-subtle: #fdf5e3;
+  --warning-border: #f0cf86;
+  --warning-text: #7a4a07;
+  --danger-subtle: #fdf0f0;
+  --danger-border: #f3c0c0;
+  --danger-text: #b42323;
+  --highlight: #fdf0a6; /* surlignage des termes trouves */
+  --focus-ring: #1d5bbf;
 
-  /* --- Typographie (DESIGN.md 3) --------------------------------------- */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    sans-serif;
+  /* --- Typographie ---------------------------------------------------- */
+  /* Pile systeme (aucune police chargee) : Segoe UI en tete, la police de
+     reference des postes de travail Windows en entreprise. */
+  --font-sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto,
+    "Helvetica Neue", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --fs-xs: 0.75rem;
   --fs-sm: 0.875rem;
@@ -64,21 +78,23 @@
   --fw-semibold: 600;
   --fw-bold: 700;
 
-  /* --- Espacements et rayons (DESIGN.md 4) ----------------------------- */
+  /* --- Espacements et rayons ------------------------------------------ */
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
   --space-md: 1rem;
   --space-lg: 1.5rem;
   --space-xl: 2rem;
-  --space-2xl: 2.5rem; /* 40px — rythme du tableau de bord (gap-10) */
-  --space-3xl: 3rem; /* 48px — marge laterale desktop (px-12) */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --space-2xl: 2.5rem;
+  --space-3xl: 3rem;
+  /* Rayons serres : une application metier, pas une vitrine marketing. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
   --radius-full: 9999px;
 
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.06);
-  --shadow-sheet: 0 -8px 24px rgb(15 23 42 / 0.16);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-pop: 0 4px 16px rgb(16 24 40 / 0.1), 0 1px 3px rgb(16 24 40 / 0.06);
+  --shadow-sheet: 0 16px 40px rgb(16 24 40 / 0.18), 0 2px 6px rgb(16 24 40 / 0.08);
 
   /* --- Voile des tiroirs (une seule recette pour les 3 overlays) ----- */
   --scrim: rgb(15 23 42 / 0.45);
@@ -86,41 +102,50 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-page: #0b1120;
-    --surface: #111827;
-    --surface-sunken: #0b1120;
-    --bubble-assistant: #111827; /* dark_surface : bulle assistant plus claire que la page */
+    --bg-page: #0e1116;
+    --surface: #151a21;
+    --surface-sunken: #11151b;
+    --surface-nav: #12161c;
+    --bubble-assistant: #1a2029;
 
-    --border: #1f2937;
-    --border-strong: #374151;
+    --appbar-bg: #0a0d12;
+    --appbar-text: #e8ecf1;
+    --appbar-muted: #8a94a3;
+    --appbar-hover: rgb(255 255 255 / 0.07);
+    --appbar-field: rgb(255 255 255 / 0.05);
+    --appbar-border: rgb(255 255 255 / 0.1);
 
-    --text: #f9fafb;
-    --text-secondary: #d1d5db;
-    --text-muted: #9ca3af;
+    --border: #252c36;
+    --border-strong: #36404d;
 
-    --primary: #3b82f6; /* brand.primary_dark */
-    --primary-hover: #60a5fa;
+    --text: #e8ecf1;
+    --text-secondary: #c3cad4;
+    --text-muted: #8a94a3;
+
+    --primary: #3d7fe0;
+    --primary-hover: #5a95ea;
     --on-primary: #ffffff;
-    --accent-text: #60a5fa;
-    --primary-subtle: #172554;
-    --primary-subtle-strong: #1e3a8a;
-    --primary-subtle-border: #1e40af;
-    --primary-soft: #1e40af;
+    --accent-text: #7aaef2;
+    --primary-subtle: #13233d;
+    --primary-subtle-strong: #1a3156;
+    --primary-subtle-border: #2b4f86;
+    --primary-soft: #2b4f86;
 
-    --success-subtle: #052e21;
-    --success-border: #065f46;
-    --success-text: #6ee7b7;
-    --warning-subtle: #3b2f0b;
-    --warning-border: #92600a;
-    --warning-text: #fde68a;
-    --danger-subtle: #3b1518;
-    --danger-border: #7f1d1d;
-    --danger-text: #fca5a5;
+    --success-subtle: #0f2a1d;
+    --success-border: #1d5a3a;
+    --success-text: #7fd6a4;
+    --warning-subtle: #2e2410;
+    --warning-border: #7a5a17;
+    --warning-text: #f2d08a;
+    --danger-subtle: #2f1517;
+    --danger-border: #7a2a2d;
+    --danger-text: #f3a5a5;
     --highlight: #4a3f0b;
-    --focus-ring: #60a5fa;
+    --focus-ring: #7aaef2;
 
     --shadow-card: none;
-    --shadow-sheet: none;
+    --shadow-pop: 0 4px 16px rgb(0 0 0 / 0.4);
+    --shadow-sheet: 0 16px 40px rgb(0 0 0 / 0.5);
     --scrim: rgb(2 6 23 / 0.66);
   }
 }
@@ -146,6 +171,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 * {
@@ -185,6 +211,12 @@ button {
   cursor: pointer;
 }
 
+input,
+textarea,
+select {
+  font: inherit;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -197,7 +229,7 @@ button {
 }
 
 /* ==========================================================================
-   PREMIUM SCROLLBARS — Fines, élégantes, adaptées au thème clair / sombre
+   SCROLLBARS — fines, discretes, adaptees au theme clair / sombre
    ========================================================================== */
 
 /* Firefox */
@@ -208,21 +240,19 @@ button {
 
 /* Chromium / Safari / Edge */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--border-strong);
   border-radius: 9999px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   background-clip: padding-box;
-  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -232,19 +262,3 @@ button {
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
-
-/* Surcharge thème sombre — curseur plus discret */
-@media (prefers-color-scheme: dark) {
-  * {
-    scrollbar-color: #374151 transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background-color: #374151;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: #4b5563;
-  }
-}
-

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Brand from "@/components/dashboard/brand";
 import { Icon } from "@/components/ui/icon";
 import SignOutButton from "@/components/dashboard/signout-button";
@@ -49,6 +50,7 @@ export default function GlobalHeader({
 
         <div className={`${styles.brandLink} ${styles.desktopOnly}`}>
           <Brand />
+          <span className={styles.brandEnv}>Espace interne</span>
         </div>
       </div>
 
@@ -84,6 +86,16 @@ export default function GlobalHeader({
           <Icon name="search" />
         </button>
 
+        {/* Mobile docs shortcut */}
+        <Link
+          href="/docs"
+          className={`${styles.mobileDocsControl} ${styles.mobileOnly}`}
+          aria-label="Documentation et guide d'utilisation"
+          title="Guide & Documentation"
+        >
+          <Icon name="book" />
+        </Link>
+
         {/* Mobile profile button */}
         <button
           type="button"
@@ -99,6 +111,14 @@ export default function GlobalHeader({
         {isUserMenuOpen ? (
           <div className={styles.userDropdown} role="menu">
             <div className={styles.userDropdownEmail}>{email}</div>
+            <Link
+              href="/docs"
+              className={styles.userDropdownItem}
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              <Icon name="book" />
+              <span>Guide & Documentation</span>
+            </Link>
             <button
               type="button"
               className={styles.userDropdownItem}
@@ -140,6 +160,17 @@ export default function GlobalHeader({
           </div>
         ) : null}
 
+        {/* Desktop Documentation Link */}
+        <Link
+          href="/docs"
+          className={`${styles.headerDocs} ${styles.desktopOnly}`}
+          aria-label="Documentation et guide d'utilisation"
+          title="Documentation & Guide d'utilisation"
+        >
+          <Icon name="book" />
+          <span>Documentation</span>
+        </Link>
+
         {/* Desktop Assistant Trigger */}
         <button
           type="button"
@@ -166,6 +197,10 @@ export default function GlobalHeader({
         <div className={`${styles.userMenu} ${styles.desktopOnly}`}>
           <span className={styles.avatar} title={email || "Utilisateur"}>
             {initials}
+          </span>
+          <span className={styles.userIdentity}>
+            <span className={styles.userIdentityName}>{displayName}</span>
+            <span className={styles.userIdentityEmail}>{email}</span>
           </span>
           <SignOutButton plain className={styles.iconControl}>
             <Icon name="logout" />
