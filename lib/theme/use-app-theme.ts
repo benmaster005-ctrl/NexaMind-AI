@@ -69,12 +69,12 @@ const LIGHT_CSS = `
     --surface-sunken: #f6f7f9 !important;
     --surface-nav: #f8f9fb !important;
     --bubble-assistant: #f6f7f9 !important;
-    --appbar-bg: #0f1c33 !important;
-    --appbar-text: #eef2f8 !important;
-    --appbar-muted: #9fb0c8 !important;
-    --appbar-hover: rgb(255 255 255 / 0.08) !important;
-    --appbar-field: rgb(255 255 255 / 0.07) !important;
-    --appbar-border: rgb(255 255 255 / 0.14) !important;
+    --appbar-bg: #ffffff !important;
+    --appbar-text: #0f172a !important;
+    --appbar-muted: #64748b !important;
+    --appbar-hover: #f1f5f9 !important;
+    --appbar-field: #f8fafc !important;
+    --appbar-border: #e2e8f0 !important;
     --border: #e3e6ea !important;
     --border-strong: #c8cdd5 !important;
     --text: #161b26 !important;

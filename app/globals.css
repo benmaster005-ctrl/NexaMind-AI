@@ -14,19 +14,19 @@
   color-scheme: light dark;
 
   /* --- Surfaces ------------------------------------------------------- */
-  --bg-page: #f3f4f6; /* fond applicatif neutre, legerement grise */
+  --bg-page: #f0f2f5; /* fond applicatif neutre, legerement grise */
   --surface: #ffffff; /* panneaux, en-tetes, feuilles de document */
-  --surface-sunken: #f6f7f9; /* champs, blocs secondaires, survols */
+  --surface-sunken: #f5f7fa; /* champs, blocs secondaires, survols */
   --surface-nav: #f8f9fb; /* colonnes de navigation (bibliotheque) */
-  --bubble-assistant: #f6f7f9;
+  --bubble-assistant: #f5f7fa;
 
-  /* --- Barre d'application (shell entreprise, toujours sombre) -------- */
-  --appbar-bg: #0f1c33;
-  --appbar-text: #eef2f8;
-  --appbar-muted: #9fb0c8;
-  --appbar-hover: rgb(255 255 255 / 0.08);
-  --appbar-field: rgb(255 255 255 / 0.07);
-  --appbar-border: rgb(255 255 255 / 0.14);
+  /* --- Barre d'application (shell moderne & épuré) ------------------- */
+  --appbar-bg: #ffffff;
+  --appbar-text: #0f172a;
+  --appbar-muted: #64748b;
+  --appbar-hover: #f1f5f9;
+  --appbar-field: #f8fafc;
+  --appbar-border: #e2e8f0;
 
   /* --- Bordures ------------------------------------------------------- */
   --border: #e3e6ea;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Brand from "@/components/dashboard/brand";
 import { Icon } from "@/components/ui/icon";
@@ -15,6 +15,11 @@ type AudienceCategory = "all" | "beginner" | "intermediate" | "pro" | "faq";
 
 export default function DocsView({ userEmail }: DocsViewProps) {
   const { theme, toggleTheme } = useAppTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [activeAudience, setActiveAudience] = useState<AudienceCategory>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,16 +43,20 @@ export default function DocsView({ userEmail }: DocsViewProps) {
     return matchesAudience && matchesQuery;
   };
 
+  const isDark = mounted && theme === "dark";
+
   return (
-    <div className={styles.pageWrapper} data-theme={theme}>
-      {/* --- EN-TÊTE PRINCIPAL DE LA DOCUMENTATION --- */}
+    <div
+      className={styles.pageWrapper}
+      data-theme={isDark ? "dark" : "light"}
+      suppressHydrationWarning
+    >
+      {/* --- EN-TÊTE FIXE ÉPURÉ --- */}
       <header className={styles.docHeader}>
         <div className={styles.headerLeft}>
           <Brand />
-          <span className={styles.versionBadge}>
-            <Icon name="book" />
-            <span>Guide d&apos;utilisation</span>
-          </span>
+          <span className={styles.dividerSlash}>/</span>
+          <span className={styles.docsTitleBadge}>Documentation Utilisateur</span>
         </div>
 
         <div className={styles.headerCenter}>
@@ -81,19 +90,19 @@ export default function DocsView({ userEmail }: DocsViewProps) {
             type="button"
             className={styles.themeButton}
             onClick={toggleTheme}
-            title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+            title={isDark ? "Mode clair" : "Mode sombre"}
             aria-label="Changer de thème"
           >
-            <Icon name={theme === "dark" ? "sun" : "moon"} />
+            <Icon name={isDark ? "sun" : "moon"} />
           </button>
 
           {userEmail ? (
-            <Link href="/" className={styles.primaryActionLink}>
+            <Link href="/" className={styles.backToWorkspaceBtn}>
               <Icon name="sidebar" />
-              <span>Retour au Workspace</span>
+              <span>Workspace</span>
             </Link>
           ) : (
-            <Link href="/login" className={styles.primaryActionLink}>
+            <Link href="/login" className={styles.backToWorkspaceBtn}>
               <Icon name="user" />
               <span>Connexion</span>
             </Link>
@@ -101,306 +110,304 @@ export default function DocsView({ userEmail }: DocsViewProps) {
         </div>
       </header>
 
-      {/* --- HERO BANNER --- */}
-      <section className={styles.heroSection}>
-        <div className={styles.heroContainer}>
-          <div className={styles.heroTag}>
-            <Icon name="sparkles" />
-            <span>Guide d&apos;utilisation officiel</span>
-          </div>
-          <h1 className={styles.heroTitle}>
-            Guide Complet d&apos;Utilisation de NexaMind AI
-          </h1>
-          <p className={styles.heroSubtitle}>
-            Apprenez à tirer le meilleur parti de votre copilote documentaire :
-            de la découverte des fonctionnalités de base jusqu&apos;aux usages avancés pour les professionnels.
-          </p>
-
-          {/* Filtres par audience */}
-          <div className={styles.audienceFilterBar} role="tablist">
-            <button
-              type="button"
-              className={`${styles.audienceTab} ${activeAudience === "all" ? styles.audienceTabActive : ""}`}
-              onClick={() => setActiveAudience("all")}
-              role="tab"
-              aria-selected={activeAudience === "all"}
-            >
-              🌟 Tout le guide
-            </button>
-            <button
-              type="button"
-              className={`${styles.audienceTab} ${activeAudience === "beginner" ? styles.audienceTabActive : ""}`}
-              onClick={() => setActiveAudience("beginner")}
-              role="tab"
-              aria-selected={activeAudience === "beginner"}
-            >
-              🌱 Débutant (Premiers pas)
-            </button>
-            <button
-              type="button"
-              className={`${styles.audienceTab} ${activeAudience === "intermediate" ? styles.audienceTabActive : ""}`}
-              onClick={() => setActiveAudience("intermediate")}
-              role="tab"
-              aria-selected={activeAudience === "intermediate"}
-            >
-              💼 Collaborateur (Usage quotidien)
-            </button>
-            <button
-              type="button"
-              className={`${styles.audienceTab} ${activeAudience === "pro" ? styles.audienceTabActive : ""}`}
-              onClick={() => setActiveAudience("pro")}
-              role="tab"
-              aria-selected={activeAudience === "pro"}
-            >
-              ⚡ Utilisateur Pro (Fonctions avancées)
-            </button>
-            <button
-              type="button"
-              className={`${styles.audienceTab} ${activeAudience === "faq" ? styles.audienceTabActive : ""}`}
-              onClick={() => setActiveAudience("faq")}
-              role="tab"
-              aria-selected={activeAudience === "faq"}
-            >
-              ⌨️ Raccourcis & FAQ
-            </button>
-          </div>
+      {/* --- BANDEAU NAVIGATION SECONDAIRE & FILTRES RAPIDES --- */}
+      <div className={styles.subHeaderBar}>
+        <div className={styles.breadcrumbNav}>
+          <Link href="/" className={styles.breadcrumbItem}>NexaMind AI</Link>
+          <span>/</span>
+          <span className={styles.breadcrumbItem}>Guide d&apos;utilisation</span>
+          <span>/</span>
+          <span className={styles.breadcrumbCurrent}>
+            {activeAudience === "beginner"
+              ? "Débutant"
+              : activeAudience === "intermediate"
+              ? "Collaborateur"
+              : activeAudience === "pro"
+              ? "Utilisateur Pro"
+              : activeAudience === "faq"
+              ? "FAQ"
+              : "Vue Complète"}
+          </span>
         </div>
-      </section>
 
-      {/* --- MAIN LAYOUT : SOMMAIRE STICKY + CONTENU DU GUIDE --- */}
-      <div className={styles.mainLayout}>
-        {/* Table des matières latérale (desktop) */}
-        <aside className={styles.docSidebar}>
-          <nav className={styles.stickyNav} aria-label="Sommaire du guide">
-            <div className={styles.navCategoryTitle}>1. Débutant</div>
-            <ul className={styles.navLinkList}>
-              <li><a href="#intro" className={styles.navLinkItem}>Qu&apos;est-ce que NexaMind AI ?</a></li>
-              <li><a href="#interface" className={styles.navLinkItem}>L&apos;interface en 3 colonnes</a></li>
-              <li><a href="#premier-doc" className={styles.navLinkItem}>Importer un document</a></li>
-              <li><a href="#premiere-question" className={styles.navLinkItem}>Poser une question & Citations</a></li>
-            </ul>
+        <div className={styles.audienceTabsGroup} role="tablist">
+          <button
+            type="button"
+            className={`${styles.audienceTab} ${activeAudience === "all" ? styles.audienceTabActive : ""}`}
+            onClick={() => setActiveAudience("all")}
+            role="tab"
+            aria-selected={activeAudience === "all"}
+          >
+            Tout
+          </button>
+          <button
+            type="button"
+            className={`${styles.audienceTab} ${activeAudience === "beginner" ? styles.audienceTabActive : ""}`}
+            onClick={() => setActiveAudience("beginner")}
+            role="tab"
+            aria-selected={activeAudience === "beginner"}
+          >
+            Débutant
+          </button>
+          <button
+            type="button"
+            className={`${styles.audienceTab} ${activeAudience === "intermediate" ? styles.audienceTabActive : ""}`}
+            onClick={() => setActiveAudience("intermediate")}
+            role="tab"
+            aria-selected={activeAudience === "intermediate"}
+          >
+            Collaborateur
+          </button>
+          <button
+            type="button"
+            className={`${styles.audienceTab} ${activeAudience === "pro" ? styles.audienceTabActive : ""}`}
+            onClick={() => setActiveAudience("pro")}
+            role="tab"
+            aria-selected={activeAudience === "pro"}
+          >
+            Utilisateur Pro
+          </button>
+          <button
+            type="button"
+            className={`${styles.audienceTab} ${activeAudience === "faq" ? styles.audienceTabActive : ""}`}
+            onClick={() => setActiveAudience("faq")}
+            role="tab"
+            aria-selected={activeAudience === "faq"}
+          >
+            Raccourcis & FAQ
+          </button>
+        </div>
+      </div>
 
-            <div className={styles.navCategoryTitle}>2. Collaborateur</div>
-            <ul className={styles.navLinkList}>
-              <li><a href="#categories" className={styles.navLinkItem}>Les 5 catégories métiers</a></li>
-              <li><a href="#chunks-reading" className={styles.navLinkItem}>Lire et naviguer dans les documents</a></li>
-              <li><a href="#conversations" className={styles.navLinkItem}>Historique des échanges</a></li>
-              <li><a href="#prompts-efficaces" className={styles.navLinkItem}>Formuler des questions efficaces</a></li>
+      {/* --- STRUCTURE 3 COLONNES --- */}
+      <div className={styles.container}>
+        {/* COLONNE GAUCHE : NAVIGATION HIÉRARCHIQUE */}
+        <aside className={styles.leftSidebar}>
+          <div className={styles.navGroup}>
+            <div className={styles.navGroupHeader}>1. Premiers pas</div>
+            <ul className={styles.navList}>
+              <li className={styles.navItem}><a href="#intro" className={styles.navLink}>Qu&apos;est-ce que NexaMind AI ?</a></li>
+              <li className={styles.navItem}><a href="#interface" className={styles.navLink}>L&apos;interface en 3 colonnes</a></li>
+              <li className={styles.navItem}><a href="#premier-doc" className={styles.navLink}>Importer un document</a></li>
+              <li className={styles.navItem}><a href="#premiere-question" className={styles.navLink}>Poser une question & Citations</a></li>
             </ul>
+          </div>
 
-            <div className={styles.navCategoryTitle}>3. Utilisateur Pro</div>
-            <ul className={styles.navLinkList}>
-              <li><a href="#recherche-experte" className={styles.navLinkItem}>Recherche experte (Ctrl+K)</a></li>
-              <li><a href="#navigation-pro" className={styles.navLinkItem}>Exploiter les citations chirurgicales</a></li>
-              <li><a href="#bonnes-pratiques" className={styles.navLinkItem}>Structurer son corpus documentaire</a></li>
-              <li><a href="#syntheses-complexes" className={styles.navLinkItem}>Tableaux et synthèses croisées</a></li>
-              <li><a href="#fiabilite" className={styles.navLinkItem}>Fiabilité & Zéro hallucination</a></li>
+          <div className={styles.navGroup}>
+            <div className={styles.navGroupHeader}>2. Usages Collaborateur</div>
+            <ul className={styles.navList}>
+              <li className={styles.navItem}><a href="#categories" className={styles.navLink}>Les 5 catégories métiers</a></li>
+              <li className={styles.navItem}><a href="#chunks-reading" className={styles.navLink}>Lecture par sections</a></li>
+              <li className={styles.navItem}><a href="#conversations" className={styles.navLink}>Historique des échanges</a></li>
+              <li className={styles.navItem}><a href="#prompts-efficaces" className={styles.navLink}>Poser des questions précises</a></li>
             </ul>
+          </div>
 
-            <div className={styles.navCategoryTitle}>4. Références</div>
-            <ul className={styles.navLinkList}>
-              <li><a href="#raccourcis" className={styles.navLinkItem}>Raccourcis Clavier</a></li>
-              <li><a href="#formats" className={styles.navLinkItem}>Formats de fichiers acceptés</a></li>
-              <li><a href="#faq" className={styles.navLinkItem}>Questions Fréquentes (FAQ)</a></li>
+          <div className={styles.navGroup}>
+            <div className={styles.navGroupHeader}>3. Fonctions Avancées Pro</div>
+            <ul className={styles.navList}>
+              <li className={styles.navItem}><a href="#recherche-experte" className={styles.navLink}>Recherche rapide (Ctrl+K)</a></li>
+              <li className={styles.navItem}><a href="#navigation-pro" className={styles.navLink}>Navigation par citations</a></li>
+              <li className={styles.navItem}><a href="#bonnes-pratiques" className={styles.navLink}>Bonnes pratiques de dépôt</a></li>
+              <li className={styles.navItem}><a href="#syntheses-complexes" className={styles.navLink}>Synthèses & Tableaux</a></li>
+              <li className={styles.navItem}><a href="#fiabilite" className={styles.navLink}>Fiabilité & Zéro hallucination</a></li>
             </ul>
-          </nav>
+          </div>
+
+          <div className={styles.navGroup}>
+            <div className={styles.navGroupHeader}>4. Références & Support</div>
+            <ul className={styles.navList}>
+              <li className={styles.navItem}><a href="#raccourcis" className={styles.navLink}>Raccourcis clavier</a></li>
+              <li className={styles.navItem}><a href="#formats" className={styles.navLink}>Formats acceptés</a></li>
+              <li className={styles.navItem}><a href="#faq" className={styles.navLink}>Questions fréquentes (FAQ)</a></li>
+            </ul>
+          </div>
         </aside>
 
-        {/* Contenu textuel et tutoriels */}
-        <main className={styles.docContent}>
+        {/* COLONNE CENTRALE : CONTENU ÉDITORIAL PRINCIPAL */}
+        <main className={styles.mainArticle}>
+          <header className={styles.articleHeader}>
+            <div className={styles.badgePill}>
+              <Icon name="book" />
+              <span>Guide Officiel d&apos;Utilisation</span>
+            </div>
+            <h1 className={styles.articleTitle}>Guide Utilisateur NexaMind AI</h1>
+            <p className={styles.articleLead}>
+              Retrouvez, lisez et exploitez la mémoire documentaire de votre entreprise
+              avec un assistant fiable qui source rigoureusement chaque information.
+            </p>
+          </header>
+
           {/* =========================================================================
-              SECTION DÉBUTANT
+              SECTION 1 : DÉBUTANT
              ========================================================================= */}
           {isVisible("beginner", "introduction débutant interface colonnes importation premier document questions citations") && (
             <section id="intro" className={styles.docSection}>
-              <div className={styles.sectionHeader}>
-                <span className={`${styles.badgeCategory} ${styles.badgeBeginner}`}>Guide Débutant</span>
-                <h2 className={styles.sectionTitle}>
-                  <Icon name="sparkles" />
-                  Prise en Main Rapide
-                </h2>
-                <p className={styles.sectionLead}>
-                  Tout ce qu&apos;il faut savoir pour commencer à interroger et consulter vos documents en toute simplicité.
-                </p>
-              </div>
-
-              <h3>Qu&apos;est-ce que NexaMind AI ?</h3>
-              <p>
-                NexaMind AI est votre <strong>espace de travail documentaire intelligent</strong>.
-                Contrairement à des outils publics qui inventent parfois des faits (hallucinations),
-                NexaMind ne répond <strong>qu&apos;à partir des documents réels de votre entreprise</strong>.
-                Chaque réponse est accompagnée de la preuve exacte d&apos;où provient l&apos;information.
+              <h2 className={styles.sectionHeading}>
+                <Icon name="sparkles" />
+                1. Prise en Main Rapide
+              </h2>
+              <p className={styles.paragraph}>
+                NexaMind AI est conçu pour vous faire gagner un temps précieux dans la consultation
+                des dossiers, chartes, comptes-rendus et procédures d&apos;entreprise.
               </p>
 
-              <div className={styles.callout + " " + styles.calloutTip}>
+              <h3 className={styles.subHeading}>Qu&apos;est-ce que NexaMind AI ?</h3>
+              <p className={styles.paragraph}>
+                Contrairement aux chatbots généralistes du marché qui peuvent inventer des faits,
+                NexaMind AI répond <strong>exclusivement à partir de vos vrais documents déposés</strong>.
+                Chaque réponse est reliée au texte original par une citation cliquable.
+              </p>
+
+              <div className={styles.callout}>
                 <div className={styles.calloutIcon}>💡</div>
-                <div className={styles.calloutBody}>
-                  <div className={styles.calloutTitle}>La garantie de vérification</div>
-                  Lorsque l&apos;IA vous répond, elle insère des repères cliquables <code>[1]</code>, <code>[2]</code>.
-                  En cliquant dessus, le document s&apos;ouvre automatiquement au paragraphe exact d&apos;où provient l&apos;extrait.
-                </div>
-              </div>
-
-              <h3 id="interface">Comprendre l&apos;interface en 3 colonnes</h3>
-              <p>
-                L&apos;application est organisée en 3 zones pour naviguer facilement sans changer de page :
-              </p>
-
-              <div className={styles.gridSteps}>
-                <div className={styles.stepCard}>
-                  <span className={styles.stepNumber}>1</span>
-                  <h4 className={styles.stepTitle}>Bibliothèque (Gauche)</h4>
-                  <p className={styles.stepDesc}>
-                    La liste de tous vos documents et de ceux de l&apos;entreprise.
-                    Vous pouvez filtrer par catégorie et voir le statut de chaque fichier en un coup d&apos;œil.
-                  </p>
-                </div>
-
-                <div className={styles.stepCard}>
-                  <span className={styles.stepNumber}>2</span>
-                  <h4 className={styles.stepTitle}>Lecteur de Document (Centre)</h4>
-                  <p className={styles.stepDesc}>
-                    Affiche le texte complet du document sélectionné. Les sections citées par l&apos;assistant
-                    s&apos;y affichent en surbrillance pour une lecture immédiate.
-                  </p>
-                </div>
-
-                <div className={styles.stepCard}>
-                  <span className={styles.stepNumber}>3</span>
-                  <h4 className={styles.stepTitle}>Copilote IA (Droite)</h4>
-                  <p className={styles.stepDesc}>
-                    Votre assistant conversationnel. Posez vos questions, lisez ses réponses sourcées,
-                    et retrouvez vos échanges passés dans l&apos;historique.
+                <div>
+                  <div className={styles.calloutTitle}>La garantie de vérification en un clic</div>
+                  <p className={styles.calloutText}>
+                    Chaque fait énoncé par l&apos;IA est indexé par un numéro <code>[1]</code> ou <code>[2]</code>.
+                    Un simple clic sur le repère vous amène directement au paragraphe source dans le lecteur.
                   </p>
                 </div>
               </div>
 
-              <h3 id="premier-doc">Importer votre premier document</h3>
-              <p>
-                Pour ajouter un document à votre base de connaissances :
-              </p>
-              <ol style={{ paddingLeft: "20px", lineHeight: "1.7", fontSize: "var(--fs-sm)" }}>
-                <li>Cliquez sur le bouton <strong>+ Nouveau document</strong> (dans la barre de catégories en haut ou dans la bibliothèque).</li>
-                <li>Glissez-déposez ou sélectionnez votre fichier (formats <code>.pdf</code>, <code>.docx</code>, <code>.txt</code>, <code>.md</code> jusqu&apos;à 4 Mo).</li>
-                <li>Donnez-lui un <strong>titre explicite</strong> et choisissez sa <strong>catégorie</strong> (ex: <em>Procédures</em>, <em>Projets</em>, <em>Ressources</em>).</li>
-                <li>Ajoutez des mots-clés (tags) pour le retrouver plus rapidement plus tard.</li>
-                <li>Cliquez sur <strong>Déposer et analyser</strong>. Le document est prêt en quelques secondes !</li>
+              <h3 id="interface" className={styles.subHeading}>Comprendre l&apos;interface en 3 colonnes</h3>
+              <div className={styles.featureGrid}>
+                <div className={styles.featureCard}>
+                  <span className={styles.stepIndex}>1</span>
+                  <div className={styles.featureCardTitle}>Bibliothèque (Gauche)</div>
+                  <p className={styles.featureCardDesc}>
+                    La liste de tous vos documents et des ressources partagées de l&apos;entreprise. Filtrez par statut et par catégorie.
+                  </p>
+                </div>
+
+                <div className={styles.featureCard}>
+                  <span className={styles.stepIndex}>2</span>
+                  <div className={styles.featureCardTitle}>Lecteur (Centre)</div>
+                  <p className={styles.featureCardDesc}>
+                    Le texte clair et structuré du document sélectionné. Les sections citées par l&apos;assistant s&apos;y surlignent immédiatement.
+                  </p>
+                </div>
+
+                <div className={styles.featureCard}>
+                  <span className={styles.stepIndex}>3</span>
+                  <div className={styles.featureCardTitle}>Copilote IA (Droite)</div>
+                  <p className={styles.featureCardDesc}>
+                    Votre espace de dialogue avec l&apos;IA. Posez vos questions, consultez les sources citées et rouvrez vos sessions passées.
+                  </p>
+                </div>
+              </div>
+
+              <h3 id="premier-doc" className={styles.subHeading}>Importer votre premier document</h3>
+              <ol style={{ paddingLeft: "20px", lineHeight: "1.75", fontSize: "0.9rem", color: "var(--doc-text-secondary)" }}>
+                <li>Cliquez sur <strong>+ Nouveau document</strong> dans la barre supérieure ou la bibliothèque.</li>
+                <li>Sélectionnez votre fichier (<code>.pdf</code>, <code>.docx</code>, <code>.txt</code> ou <code>.md</code> jusqu&apos;à 4 Mo).</li>
+                <li>Indiquez un titre descriptif et sélectionnez sa <strong>catégorie</strong> (ex: <em>Procédures</em>, <em>Projets</em>, <em>Ressources</em>).</li>
+                <li>Ajoutez des tags pour un classement aisé (ex: <code>rh</code>, <code>budget</code>).</li>
+                <li>Validez avec <strong>Déposer et analyser</strong>. L&apos;analyse est finalisée en quelques secondes.</li>
               </ol>
 
-              <h3 id="premiere-question">Poser une question à l&apos;assistant</h3>
-              <p>
-                Tapez votre question dans la barre de saisie en bas du lecteur ou dans le volet Assistant :
+              <h3 id="premiere-question" className={styles.subHeading}>Poser une question à l&apos;assistant</h3>
+              <p className={styles.paragraph}>
+                Saisissez votre question dans la barre en bas du lecteur ou directement dans le volet Assistant :
               </p>
-              <div className={styles.callout + " " + styles.calloutSuccess}>
+              <div className={styles.callout}>
                 <div className={styles.calloutIcon}>💬</div>
-                <div className={styles.calloutBody}>
+                <div>
                   <div className={styles.calloutTitle}>Exemple de question simple</div>
-                  <em>&laquo; Quels sont les horaires d&apos;ouverture du support selon le livret d&apos;accueil ? &raquo;</em>
-                  <br />
-                  L&apos;assistant formule sa réponse avec la citation <code>[1]</code> qui pointe vers la bonne page.
+                  <p className={styles.calloutText}>
+                    <em>&laquo; Quels sont les délais pour déclarer un congé d&apos;après le livret interne ? &raquo;</em>
+                    <br />
+                    L&apos;assistant répond en s&apos;appuyant sur l&apos;extrait et cite le document correspondant.
+                  </p>
                 </div>
               </div>
             </section>
           )}
 
           {/* =========================================================================
-              SECTION COLLABORATEUR / MÉTIER
+              SECTION 2 : COLLABORATEUR
              ========================================================================= */}
           {isVisible("intermediate", "collaborateur métier catégories organisation chunks lecture historique prompts") && (
             <section id="categories" className={styles.docSection}>
-              <div className={styles.sectionHeader}>
-                <span className={`${styles.badgeCategory} ${styles.badgeIntermediate}`}>Guide Collaborateur & Métier</span>
-                <h2 className={styles.sectionTitle}>
-                  <Icon name="folder" />
-                  Organisation Documentaire & Usages du Quotidien
-                </h2>
-                <p className={styles.sectionLead}>
-                  Organisez vos fichiers efficacement et découvrez comment gagner du temps sur vos tâches courantes.
-                </p>
-              </div>
-
-              <h3>Les 5 Catégories Métiers de NexaMind</h3>
-              <p>
-                Pour garder une bibliothèque propre et lisible pour toute l&apos;équipe, les documents sont classés ainsi :
+              <h2 className={styles.sectionHeading}>
+                <Icon name="folder" />
+                2. Organisation & Usages Collaborateur
+              </h2>
+              <p className={styles.paragraph}>
+                Adoptez les bonnes pratiques de classement pour rendre l&apos;information fluide et accessible à l&apos;ensemble de l&apos;équipe.
               </p>
-              <div className={styles.tableResponsive}>
-                <table className={styles.tableSpec}>
+
+              <h3 className={styles.subHeading}>Les 5 Catégories Métiers de NexaMind</h3>
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
                   <thead>
                     <tr>
                       <th>Catégorie</th>
-                      <th>À quoi ça sert ?</th>
+                      <th>Usage</th>
                       <th>Exemples concrets</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td><strong>Ressources</strong></td>
-                      <td>Fiches de référence, grilles tarifaires, listes utiles</td>
-                      <td>Grille tarifaire 2026, Annuaire d&apos;équipe</td>
+                      <td>Référentiels, grilles, documents statiques</td>
+                      <td>Grille tarifaire, Annuaire interne, Glossaire</td>
                     </tr>
                     <tr>
                       <td><strong>Projets</strong></td>
-                      <td>Dossiers de cadrage, spécifications, plannings</td>
-                      <td>Cahier des charges Alpha, Roadmap Q4</td>
+                      <td>Cahiers des charges, plannings, specs</td>
+                      <td>Spécification Alpha, Calendrier de déploiement</td>
                     </tr>
                     <tr>
                       <td><strong>Procédures</strong></td>
-                      <td>Guides opérationnels, protocoles RH, marches à suivre</td>
-                      <td>Charte télétravail, Guide de remboursement des frais</td>
+                      <td>Modes d&apos;emploi, protocoles, chartes RH</td>
+                      <td>Charte télétravail, Guide des frais professionnels</td>
                     </tr>
                     <tr>
                       <td><strong>FAQ</strong></td>
-                      <td>Questions-réponses récurrentes pour les collaborateurs</td>
-                      <td>FAQ Mutuelle & Prévoyance, Support informatique</td>
+                      <td>Questions et réponses récurrentes</td>
+                      <td>FAQ Avantages sociaux, Support matériel</td>
                     </tr>
                     <tr>
                       <td><strong>Compte rendu</strong></td>
-                      <td>Synthèses de réunions, bilans périodiques, comptes-rendus</td>
-                      <td>CR de réunion de rentrée, Bilan trimestriel</td>
+                      <td>Synthèses d&apos;ateliers, PV de comités</td>
+                      <td>CR de réunion de direction, Bilan trimestriel</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
-              <h3 id="chunks-reading">Lire et naviguer dans les documents longs</h3>
-              <p>
-                NexaMind découpe automatiquement chaque document en sections cohérentes.
-                Cela apporte plusieurs avantages :
+              <h3 id="chunks-reading" className={styles.subHeading}>Lecture et découpage par sections</h3>
+              <p className={styles.paragraph}>
+                NexaMind partitionne automatiquement les documents volumineux en sections cohérentes.
+                Cela évite de devoir parcourir des dizaines de pages : vous êtes guidé directement vers la section pertinente.
               </p>
-              <ul style={{ paddingLeft: "20px", lineHeight: "1.7", fontSize: "var(--fs-sm)" }}>
-                <li><strong>Retrouver l&apos;essentiel :</strong> Pas besoin de lire 50 pages : l&apos;IA vous amène directement à la section pertinente.</li>
-                <li><strong>Navigation visuelle :</strong> Vous pouvez scroller de section en section tout en gardant l&apos;assistant ouvert sur le côté.</li>
-                <li><strong>Copier un extrait :</strong> Vous pouvez facilement sélectionner et copier un passage précis du texte.</li>
-              </ul>
 
-              <h3 id="conversations">Gestion de l&apos;Historique & Reprise de Travail</h3>
-              <p>
-                Toutes vos questions sont mémorisées dans votre session de travail :
-              </p>
-              <ul>
+              <h3 id="conversations" className={styles.subHeading}>Gestion de l&apos;historique</h3>
+              <ul style={{ paddingLeft: "20px", lineHeight: "1.75", fontSize: "0.9rem", color: "var(--doc-text-secondary)" }}>
                 <li>Retrouvez vos <strong>30 dernières conversations</strong> dans l&apos;onglet <em>Historique</em> du panneau droit.</li>
-                <li>Reprenez une discussion là où vous l&apos;aviez laissée pour approfondir un sujet.</li>
-                <li>Cliquez sur <strong>+ Nouvelle conversation</strong> pour poser une question sur un sujet complètement différent sans mélanger les contextes.</li>
+                <li>Reprenez une discussion antérieure sans perdre le fil des questions.</li>
+                <li>Utilisez <strong>+ Nouvelle conversation</strong> pour repartir sur un sujet neuf.</li>
               </ul>
 
-              <h3 id="prompts-efficaces">Formuler des questions efficaces</h3>
-              <div className={styles.gridSteps}>
-                <div className={styles.stepCard}>
-                  <h4 className={styles.stepTitle}>🎯 Posez des questions ciblées</h4>
-                  <p className={styles.stepDesc}>
-                    Indiquez le document ou le domaine souhaité : <em>&laquo; Selon la procédure de note de frais, quel est le plafond pour les repas ? &raquo;</em>
+              <h3 id="prompts-efficaces" className={styles.subHeading}>Poser des questions précises</h3>
+              <div className={styles.featureGrid}>
+                <div className={styles.featureCard}>
+                  <div className={styles.featureCardTitle}>🎯 Contextualisez</div>
+                  <p className={styles.featureCardDesc}>
+                    <em>&laquo; Selon la procédure de remboursement, quel est le montant forfaitaire pour les déplacements ? &raquo;</em>
                   </p>
                 </div>
-                <div className={styles.stepCard}>
-                  <h4 className={styles.stepTitle}>📑 Demandez des listes</h4>
-                  <p className={styles.stepDesc}>
-                    <em>&laquo; Liste sous forme de puces les 4 étapes à suivre pour déclarer un arrêt maladie. &raquo;</em>
+                <div className={styles.featureCard}>
+                  <div className={styles.featureCardTitle}>📋 Demandez des listes</div>
+                  <p className={styles.featureCardDesc}>
+                    <em>&laquo; Liste sous forme de puces les critères d&apos;éligibilité au forfait mobilité. &raquo;</em>
                   </p>
                 </div>
-                <div className={styles.stepCard}>
-                  <h4 className={styles.stepTitle}>🔍 Demandez des synthèses</h4>
-                  <p className={styles.stepDesc}>
-                    <em>&laquo; Fais-moi un résumé en 3 phrases des conclusions du compte rendu de vendredi dernier. &raquo;</em>
+                <div className={styles.featureCard}>
+                  <div className={styles.featureCardTitle}>🔍 Synthétisez</div>
+                  <p className={styles.featureCardDesc}>
+                    <em>&laquo; Résume les points d&apos;arbitrage du dernier compte-rendu en 3 phrases. &raquo;</em>
                   </p>
                 </div>
               </div>
@@ -408,160 +415,130 @@ export default function DocsView({ userEmail }: DocsViewProps) {
           )}
 
           {/* =========================================================================
-              SECTION UTILISATEUR PRO (FONCTIONS AVANCÉES)
+              SECTION 3 : UTILISATEUR PRO
              ========================================================================= */}
           {isVisible("pro", "pro utilisateur avancé recherche experte ctrl k citations tableaux matrices filtres gouvernance") && (
             <section id="recherche-experte" className={styles.docSection}>
-              <div className={styles.sectionHeader}>
-                <span className={`${styles.badgeCategory} ${styles.badgePro}`}>Guide Utilisateur Pro & Avancé</span>
-                <h2 className={styles.sectionTitle}>
-                  <Icon name="sparkles" />
-                  Fonctionnalités Avancées & Maîtrise Experte
-                </h2>
-                <p className={styles.sectionLead}>
-                  Optimisez votre productivité au quotidien avec la palette de commande,
-                  les citations croisées et les synthèses analytiques multi-documents.
-                </p>
-              </div>
-
-              <h3>La Recherche Universelle avec <kbd>Ctrl</kbd> + <kbd>K</kbd></h3>
-              <p>
-                Le moyen le plus rapide d&apos;explorer vos documents sans lever les mains du clavier :
+              <h2 className={styles.sectionHeading}>
+                <Icon name="sparkles" />
+                3. Fonctions Avancées pour Utilisateur Pro
+              </h2>
+              <p className={styles.paragraph}>
+                Pour les utilisateurs intensifs : naviguez à la vitesse du clavier et réalisez des synthèses documentaires croisées.
               </p>
-              <ul>
-                <li>Pressez <kbd>Ctrl</kbd> + <kbd>K</kbd> (ou <kbd>Cmd</kbd> + <kbd>K</kbd> sur Mac) depuis n&apos;importe quel écran.</li>
-                <li>Tapez quelques lettres d&apos;un titre, d&apos;une catégorie ou d&apos;un mot-clé contenu dans vos fichiers.</li>
-                <li>La recherche sémantique trouve le document le plus proche, même si vous n&apos;avez pas tapé le mot exact.</li>
-                <li>Utilisez les flèches du clavier puis <kbd>Entrée</kbd> pour ouvrir immédiatement le résultat.</li>
-              </ul>
 
-              <h3 id="navigation-pro">Exploiter les Citations Chirurgicales</h3>
-              <p>
-                Pour les documents contractuels, financiers ou réglementaires où chaque détail compte :
+              <h3 className={styles.subHeading}>La Recherche Universelle (<kbd>Ctrl</kbd> + <kbd>K</kbd>)</h3>
+              <p className={styles.paragraph}>
+                Appuyez sur <kbd>Ctrl</kbd> + <kbd>K</kbd> (ou <kbd>Cmd</kbd> + <kbd>K</kbd> sur macOS) à tout moment.
+                La palette sémantique vous permet de retrouver un document même si vous ne connaissez pas son titre exact.
+                Naviguez avec les flèches directionnelles et validez avec <kbd>Entrée</kbd>.
               </p>
-              <div className={styles.callout + " " + styles.calloutTip}>
-                <div className={styles.calloutIcon}>🔎</div>
-                <div className={styles.calloutBody}>
-                  <div className={styles.calloutTitle}>Vérification croisée immédiate</div>
-                  Dans chaque réponse de l&apos;assistant, les bulles de sources vous affichent le nom du document
-                  et la fraction de texte exacte. En survolant ou en cliquant sur le badge, le document se positionne
-                  automatiquement sur la phrase exacte citée.
-                </div>
-              </div>
 
-              <h3 id="bonnes-pratiques">Bonnes pratiques de structuration documentaire</h3>
-              <p>
-                Pour obtenir des réponses parfaites de l&apos;IA, voici quelques règles simples pour déposer vos fichiers :
+              <h3 id="navigation-pro" className={styles.subHeading}>Exploiter les citations chirurgicales</h3>
+              <p className={styles.paragraph}>
+                Dans les réponses de l&apos;assistant, les badges de citation mentionnent le titre du document ainsi que la section exacte.
+                En cliquant sur un badge, le lecteur défile automatiquement et surligne l&apos;extrait pour une vérification immédiate.
               </p>
-              <div className={styles.gridSteps}>
-                <div className={styles.stepCard}>
-                  <h4 className={styles.stepTitle}>📝 Titres précis</h4>
-                  <p className={styles.stepDesc}>
-                    Nommez vos documents clairement : préférez <em>&laquo; Charte Télétravail 2026 &raquo;</em> à <em>&laquo; document_final_v2.pdf &raquo;</em>.
+
+              <h3 id="bonnes-pratiques" className={styles.subHeading}>Bonnes pratiques de structuration</h3>
+              <div className={styles.featureGrid}>
+                <div className={styles.featureCard}>
+                  <div className={styles.featureCardTitle}>Titres normalisés</div>
+                  <p className={styles.featureCardDesc}>
+                    Privilégiez les dénominations claires : <em>&laquo; Politique RH 2026 &raquo;</em> plutôt que des noms de fichiers génériques.
                   </p>
                 </div>
-                <div className={styles.stepCard}>
-                  <h4 className={styles.stepTitle}>📄 Privilégiez les PDF textuels</h4>
-                  <p className={styles.stepDesc}>
-                    Assurez-vous que le texte peut être sélectionné dans vos fichiers PDF. Évitez les simples photos scannées sans couche de texte.
+                <div className={styles.featureCard}>
+                  <div className={styles.featureCardTitle}>PDF textuels</div>
+                  <p className={styles.featureCardDesc}>
+                    Vérifiez que vos PDF contiennent du texte sélectionnable et non une simple numérisation photo.
                   </p>
                 </div>
-                <div className={styles.stepCard}>
-                  <h4 className={styles.stepTitle}>🏷️ Utilisez les tags</h4>
-                  <p className={styles.stepDesc}>
-                    Les tags comme <code>rh</code>, <code>direction</code> ou <code>finance</code> permettent de retrouver des séries de documents d&apos;un seul clic.
+                <div className={styles.featureCard}>
+                  <div className={styles.featureCardTitle}>Tags transverses</div>
+                  <p className={styles.featureCardDesc}>
+                    Associez des tags d&apos;équipes (<code>direction</code>, <code>finance</code>) pour regrouper les documents clés.
                   </p>
                 </div>
               </div>
 
-              <h3 id="syntheses-complexes">Tableaux comparatifs et synthèses croisées</h3>
-              <p>
-                Vous pouvez demander à NexaMind d&apos;analyser plusieurs documents en même temps pour produire des tableaux clairs :
-              </p>
-              <div className={styles.callout + " " + styles.calloutSuccess}>
+              <h3 id="syntheses-complexes" className={styles.subHeading}>Synthèses et tableaux comparatifs</h3>
+              <div className={styles.callout}>
                 <div className={styles.calloutIcon}>📊</div>
-                <div className={styles.calloutBody}>
-                  <div className={styles.calloutTitle}>Exemple de prompt avancé pour utilisateur Pro</div>
-                  <em>&laquo; Dresse un tableau comparatif entre les garanties de la mutuelle formule standard et la formule renforcée, avec les montants de prise en charge pour les soins dentaires et optiques. &raquo;</em>
+                <div>
+                  <div className={styles.calloutTitle}>Exemple de prompt pro</div>
+                  <p className={styles.calloutText}>
+                    <em>&laquo; Compare sous forme de tableau les options de la formule standard et de la formule premium selon la grille 2026. &raquo;</em>
+                  </p>
                 </div>
               </div>
 
-              <h3 id="fiabilite">Comprendre la Fiabilité de l&apos;IA (Pourquoi elle ne devine jamais)</h3>
-              <p>
-                NexaMind a été conçu selon une règle de conformité stricte :
-              </p>
-              <ul style={{ paddingLeft: "20px", lineHeight: "1.7", fontSize: "var(--fs-sm)" }}>
-                <li><strong>Abstention honnête :</strong> Si une question ne trouve aucune réponse dans les documents déposés, l&apos;assistant indique clairement qu&apos;il ne possède pas l&apos;information, plutôt que d&apos;extrapoler.</li>
-                <li><strong>Documents de suggestion :</strong> Lorsqu&apos;un sujet est proche mais incomplet, l&apos;assistant vous suggère les documents qui pourraient vous intéresser pour compléter votre recherche.</li>
-                <li><strong>Statut des documents :</strong>
-                  <br />• <span style={{ color: "var(--success-text)", fontWeight: "bold" }}>Prête :</span> Le document est totalement analysé et opérationnel.
-                  <br />• <span style={{ color: "var(--warning-text)", fontWeight: "bold" }}>En cours :</span> L&apos;analyse est en train de s&apos;effectuer (quelques secondes).
-                  <br />• <span style={{ color: "var(--danger-text)", fontWeight: "bold" }}>Échec :</span> Le fichier est protégé par mot de passe ou illisible.
+              <h3 id="fiabilite" className={styles.subHeading}>Fiabilité et Zéro Hallucination</h3>
+              <ul style={{ paddingLeft: "20px", lineHeight: "1.75", fontSize: "0.9rem", color: "var(--doc-text-secondary)" }}>
+                <li><strong>Abstention transparente :</strong> Si une information n&apos;existe pas dans vos documents, l&apos;IA signale clairement son absence au lieu d&apos;inventer.</li>
+                <li><strong>Statuts des documents :</strong>
+                  <br />• <strong>Prête :</strong> Document indexé et totalement interrogeable.
+                  <br />• <strong>En cours :</strong> Extraction en cours de finalisation (quelques secondes).
+                  <br />• <strong>Échec :</strong> Document protégé par mot de passe ou sans texte exploitable.
                 </li>
               </ul>
             </section>
           )}
 
           {/* =========================================================================
-              SECTION RACCOURCIS & FAQ
+              SECTION 4 : RACCOURCIS & FAQ
              ========================================================================= */}
           {isVisible("faq", "faq raccourcis clavier formats questions fréquentes aide support") && (
             <section id="raccourcis" className={styles.docSection}>
-              <div className={styles.sectionHeader}>
-                <span className={`${styles.badgeCategory} ${styles.badgeTech}`}>Référence Rapide & FAQ</span>
-                <h2 className={styles.sectionTitle}>
-                  <Icon name="book" />
-                  Raccourcis Clavier, Formats & FAQ
-                </h2>
-                <p className={styles.sectionLead}>
-                  Gagnez du temps au quotidien avec les raccourcis essentiels et les réponses aux questions les plus courantes.
-                </p>
-              </div>
+              <h2 className={styles.sectionHeading}>
+                <Icon name="book" />
+                4. Raccourcis Clavier, Formats & FAQ
+              </h2>
 
-              <h3>Raccourcis Clavier Essentiels</h3>
-              <div className={styles.tableResponsive}>
-                <table className={styles.tableSpec}>
+              <h3 className={styles.subHeading}>Raccourcis Clavier Essentiels</h3>
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
                   <thead>
                     <tr>
                       <th>Raccourci</th>
                       <th>Action</th>
-                      <th>Où l&apos;utiliser ?</th>
+                      <th>Contexte</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><kbd>Ctrl</kbd> + <kbd>K</kbd> ou <kbd>Cmd</kbd> + <kbd>K</kbd></td>
-                      <td>Ouvrir la palette de recherche universelle</td>
+                      <td><kbd>Ctrl</kbd> + <kbd>K</kbd> / <kbd>Cmd</kbd> + <kbd>K</kbd></td>
+                      <td>Ouvrir la recherche globale</td>
                       <td>Partout dans l&apos;application</td>
                     </tr>
                     <tr>
                       <td><kbd>Escape</kbd></td>
-                      <td>Fermer la fenêtre de recherche ou la fenêtre de dépôt</td>
-                      <td>Quand une fenêtre pop-up est ouverte</td>
+                      <td>Fermer une modal (recherche, dépôt)</td>
+                      <td>Quand une fenêtre est ouverte</td>
                     </tr>
                     <tr>
                       <td><kbd>Entrée</kbd></td>
                       <td>Envoyer la question à l&apos;assistant</td>
-                      <td>Dans le champ de question</td>
+                      <td>Dans la zone de saisie</td>
                     </tr>
                     <tr>
                       <td><kbd>Maj</kbd> + <kbd>Entrée</kbd></td>
-                      <td>Aller à la ligne sans envoyer le message</td>
-                      <td>Dans le champ de question</td>
+                      <td>Insérer un saut de ligne</td>
+                      <td>Dans la zone de saisie</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
-              <h3 id="formats">Formats de Fichiers Acceptés</h3>
-              <div className={styles.tableResponsive}>
-                <table className={styles.tableSpec}>
+              <h3 id="formats" className={styles.subHeading}>Formats de Fichiers Acceptés</h3>
+              <div className={styles.tableWrapper}>
+                <table className={styles.dataTable}>
                   <thead>
                     <tr>
                       <th>Format</th>
                       <th>Extension</th>
-                      <th>Taille maximale</th>
-                      <th>Recommandation</th>
+                      <th>Taille max</th>
+                      <th>Usage idéal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -569,46 +546,46 @@ export default function DocsView({ userEmail }: DocsViewProps) {
                       <td><strong>Adobe PDF</strong></td>
                       <td><code>.pdf</code></td>
                       <td>4 Mo</td>
-                      <td>Idéal pour les contrats, chartes, procédures officielles</td>
+                      <td>Chartes, contrats, procédures officielles</td>
                     </tr>
                     <tr>
                       <td><strong>Microsoft Word</strong></td>
                       <td><code>.docx</code></td>
                       <td>4 Mo</td>
-                      <td>Idéal pour les comptes-rendus, notes de service, projets</td>
+                      <td>Comptes-rendus, notes internes, projets</td>
                     </tr>
                     <tr>
                       <td><strong>Texte brut</strong></td>
                       <td><code>.txt</code></td>
                       <td>4 Mo</td>
-                      <td>Idéal pour les notes rapides, mémos</td>
+                      <td>Notes rapides, mémos</td>
                     </tr>
                     <tr>
                       <td><strong>Markdown</strong></td>
                       <td><code>.md</code></td>
                       <td>4 Mo</td>
-                      <td>Idéal pour les documentations techniques et fiches FAQ</td>
+                      <td>Documentations techniques, listes FAQ</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
-              <h3 id="faq">Questions Fréquentes (FAQ)</h3>
-              <div className={styles.faqList}>
+              <h3 id="faq" className={styles.subHeading}>Foire Aux Questions (FAQ)</h3>
+              <div className={styles.faqGroup}>
                 <div className={styles.faqItem}>
                   <button
                     type="button"
-                    className={styles.faqTrigger}
+                    className={styles.faqButton}
                     onClick={() => toggleFaq("faq1")}
                     aria-expanded={openFaq.faq1}
                   >
-                    <span>Mes documents sont-ils protégés et confidentiels ?</span>
+                    <span>Mes documents restent-ils privés et protégés ?</span>
                     <Icon name={openFaq.faq1 ? "chevronDown" : "chevronRight"} />
                   </button>
                   {openFaq.faq1 && (
-                    <div className={styles.faqAnswer}>
-                      <strong>Oui, totalement.</strong> Vos documents sont isolés au sein de votre espace d&apos;entreprise privé et chiffré.
-                      Ils ne sont jamais partagés publiquement et ne sont jamais utilisés pour entraîner des modèles publics d&apos;intelligence artificielle.
+                    <div className={styles.faqContent}>
+                      <strong>Oui, entièrement.</strong> Vos documents demeurent confinés à l&apos;espace privé de votre entreprise.
+                      Ils ne sont jamais exposés publiquement ni exploités pour l&apos;entraînement de modèles d&apos;IA tiers.
                     </div>
                   )}
                 </div>
@@ -616,17 +593,17 @@ export default function DocsView({ userEmail }: DocsViewProps) {
                 <div className={styles.faqItem}>
                   <button
                     type="button"
-                    className={styles.faqTrigger}
+                    className={styles.faqButton}
                     onClick={() => toggleFaq("faq2")}
                     aria-expanded={openFaq.faq2}
                   >
-                    <span>Pourquoi l&apos;IA me dit-elle parfois qu&apos;elle ne trouve pas l&apos;information ?</span>
+                    <span>Pourquoi l&apos;IA répond-elle parfois qu&apos;elle ne trouve pas la réponse ?</span>
                     <Icon name={openFaq.faq2 ? "chevronDown" : "chevronRight"} />
                   </button>
                   {openFaq.faq2 && (
-                    <div className={styles.faqAnswer}>
-                      C&apos;est la garantie zéro hallucination de NexaMind. Si l&apos;information demandée ne figure pas explicitement
-                      dans les documents déposés sur la plateforme, l&apos;assistant préfère vous avertir plutôt que de vous donner une réponse erronée.
+                    <div className={styles.faqContent}>
+                      C&apos;est la garantie zéro hallucination. Si l&apos;information n&apos;est pas présente dans les documents de votre base,
+                      NexaMind vous avertit honnêtement plutôt que de vous induire en erreur avec une réponse inventée.
                     </div>
                   )}
                 </div>
@@ -634,17 +611,17 @@ export default function DocsView({ userEmail }: DocsViewProps) {
                 <div className={styles.faqItem}>
                   <button
                     type="button"
-                    className={styles.faqTrigger}
+                    className={styles.faqButton}
                     onClick={() => toggleFaq("faq3")}
                     aria-expanded={openFaq.faq3}
                   >
-                    <span>Que faire si mon document est au statut &laquo; Échec &raquo; ?</span>
+                    <span>Que faire en cas d&apos;échec d&apos;analyse d&apos;un fichier ?</span>
                     <Icon name={openFaq.faq3 ? "chevronDown" : "chevronRight"} />
                   </button>
                   {openFaq.faq3 && (
-                    <div className={styles.faqAnswer}>
-                      Vérifiez que votre fichier n&apos;est pas protégé par un mot de passe, qu&apos;il ne dépasse pas 4 Mo,
-                      et qu&apos;il contient bien du texte sélectionnable (et non une simple photographie sans texte).
+                    <div className={styles.faqContent}>
+                      Vérifiez que le document fait moins de 4 Mo, qu&apos;il n&apos;a pas de mot de passe de protection
+                      et qu&apos;il comporte du texte vectorisé (non scanné en tant que simple image).
                     </div>
                   )}
                 </div>
@@ -652,7 +629,7 @@ export default function DocsView({ userEmail }: DocsViewProps) {
                 <div className={styles.faqItem}>
                   <button
                     type="button"
-                    className={styles.faqTrigger}
+                    className={styles.faqButton}
                     onClick={() => toggleFaq("faq4")}
                     aria-expanded={openFaq.faq4}
                   >
@@ -660,9 +637,9 @@ export default function DocsView({ userEmail }: DocsViewProps) {
                     <Icon name={openFaq.faq4 ? "chevronDown" : "chevronRight"} />
                   </button>
                   {openFaq.faq4 && (
-                    <div className={styles.faqAnswer}>
-                      Dans la colonne de gauche (Bibliothèque), survolez le document que vous souhaitez retirer,
-                      puis cliquez sur l&apos;icône corbeille pour le supprimer définitivement.
+                    <div className={styles.faqContent}>
+                      Survolez le document dans la bibliothèque (colonne gauche), puis cliquez sur l&apos;icône corbeille
+                      pour le supprimer définitivement avec l&apos;ensemble de ses indexations.
                     </div>
                   )}
                 </div>
@@ -670,17 +647,17 @@ export default function DocsView({ userEmail }: DocsViewProps) {
                 <div className={styles.faqItem}>
                   <button
                     type="button"
-                    className={styles.faqTrigger}
+                    className={styles.faqButton}
                     onClick={() => toggleFaq("faq5")}
                     aria-expanded={openFaq.faq5}
                   >
-                    <span>Puis-je poser des questions en plusieurs langues ?</span>
+                    <span>Peut-on interroger l&apos;IA en plusieurs langues ?</span>
                     <Icon name={openFaq.faq5 ? "chevronDown" : "chevronRight"} />
                   </button>
                   {openFaq.faq5 && (
-                    <div className={styles.faqAnswer}>
-                      Oui ! Même si votre document est en anglais ou en français, vous pouvez poser votre question
-                      dans la langue de votre choix. L&apos;assistant comprend le sens et traduit la réponse si nécessaire.
+                    <div className={styles.faqContent}>
+                      Oui, vous pouvez formuler votre question en français, anglais ou autre langue,
+                      même si le document source est rédigé dans une langue différente.
                     </div>
                   )}
                 </div>
@@ -688,19 +665,34 @@ export default function DocsView({ userEmail }: DocsViewProps) {
             </section>
           )}
         </main>
+
+        {/* COLONNE DROITE : SUR CETTE PAGE (ON THIS PAGE) */}
+        <aside className={styles.rightSidebar}>
+          <div className={styles.tocTitle}>Sur cette page</div>
+          <ul className={styles.tocList}>
+            <li className={styles.tocItem}><a href="#intro" className={styles.tocLink}>Prise en main</a></li>
+            <li className={styles.tocItem}><a href="#interface" className={styles.tocLink}>Interface 3 colonnes</a></li>
+            <li className={styles.tocItem}><a href="#premier-doc" className={styles.tocLink}>Importer un document</a></li>
+            <li className={styles.tocItem}><a href="#categories" className={styles.tocLink}>Catégories métiers</a></li>
+            <li className={styles.tocItem}><a href="#recherche-experte" className={styles.tocLink}>Recherche universelle</a></li>
+            <li className={styles.tocItem}><a href="#bonnes-pratiques" className={styles.tocLink}>Bonnes pratiques</a></li>
+            <li className={styles.tocItem}><a href="#raccourcis" className={styles.tocLink}>Raccourcis clavier</a></li>
+            <li className={styles.tocItem}><a href="#faq" className={styles.tocLink}>FAQ</a></li>
+          </ul>
+        </aside>
       </div>
 
-      {/* --- FOOTER DU GUIDE --- */}
+      {/* --- FOOTER ÉPURÉ --- */}
       <footer className={styles.docFooter}>
         <div className={styles.docFooterLinks}>
-          <Link href="/" className={styles.docFooterLink}>Accéder au Workspace</Link>
+          <Link href="/" className={styles.docFooterLink}>Workspace</Link>
           <a href="#intro" className={styles.docFooterLink}>Haut de page</a>
-          <a href="#premier-doc" className={styles.docFooterLink}>Importer un document</a>
+          <a href="#premier-doc" className={styles.docFooterLink}>Dépôt</a>
           <a href="#recherche-experte" className={styles.docFooterLink}>Fonctions Pro</a>
           <a href="#faq" className={styles.docFooterLink}>FAQ</a>
         </div>
         <div>
-          &copy; {new Date().getFullYear()} NexaWorks — NexaMind AI. Guide d&apos;utilisation utilisateur.
+          &copy; {new Date().getFullYear()} NexaMind AI — Guide utilisateur officiel.
         </div>
       </footer>
     </div>

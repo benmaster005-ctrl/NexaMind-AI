@@ -1,45 +1,97 @@
 /**
- * Styles des écrans d'authentification — charte "Clean Tech Slate" (DESIGN.md).
- * Mobile-first, sans Tailwind : carte centrée, bouton cobalt pleine largeur,
- * inputs 16px (anti-zoom iOS), zones tactiles >= 44px, thème clair/sombre auto.
+ * Styles des écrans d'authentification (Login & Register)
+ * Design moderne, clair et épuré (style Developers Portal / Clean Tech).
  */
 
 .page {
   min-height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-md);
-  background: linear-gradient(to bottom, var(--appbar-bg) 0, var(--appbar-bg) 42%, var(--bg-page) 42%);
+  padding: var(--space-lg) var(--space-md);
+  background-color: var(--bg-page);
+  position: relative;
+  overflow: hidden;
+}
+
+.topBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+}
+
+.docsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: all 0.15s ease;
+}
+
+.docsLink:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.docsLink svg {
+  width: 14px;
+  height: 14px;
 }
 
 .card {
   width: 100%;
   max-width: 420px;
-  padding: var(--space-xl) var(--space-xl) var(--space-lg);
+  padding: var(--space-2xl) var(--space-xl) var(--space-xl);
   border: 1px solid var(--border);
-  border-top: 3px solid var(--primary);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  box-shadow: var(--shadow-sheet);
+  box-shadow: 0 4px 24px -2px rgba(15, 23, 42, 0.05), 0 2px 8px -2px rgba(15, 23, 42, 0.03);
+  position: relative;
+  z-index: 10;
+}
+
+.brandHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.brandLogoWrapper {
+  margin-bottom: var(--space-md);
 }
 
 .title {
-  margin: 0;
+  margin: 0 0 6px 0;
   font-size: var(--fs-xl);
-  font-weight: var(--fw-semibold);
-  letter-spacing: -0.01em;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
   color: var(--text);
-  text-align: left;
+  text-align: center;
 }
 
 .subtitle {
-  margin: 4px 0 var(--space-lg);
-  padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--border);
+  margin: 0;
   font-size: var(--fs-sm);
   color: var(--text-muted);
-  text-align: left;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .form {
@@ -51,27 +103,26 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 6px;
 }
 
 .label {
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: -0.01em;
   color: var(--text-secondary);
 }
 
 .input {
   width: 100%;
-  min-height: 44px;
+  height: 42px;
   padding: 0 var(--space-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .input:focus {
@@ -82,8 +133,9 @@
 
 .error {
   margin: 0;
-  padding: 0.625rem var(--space-sm);
-  font-size: var(--fs-sm);
+  padding: 10px 14px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
   color: var(--danger-text);
   background: var(--danger-subtle);
   border: 1px solid var(--danger-border);
@@ -92,8 +144,8 @@
 
 .info {
   margin: 0;
-  padding: 0.625rem var(--space-sm);
-  font-size: var(--fs-sm);
+  padding: 10px 14px;
+  font-size: var(--fs-xs);
   color: var(--text-secondary);
   background: var(--surface-sunken);
   border: 1px solid var(--border);
@@ -102,8 +154,8 @@
 
 .submit {
   width: 100%;
-  min-height: 44px;
-  margin-top: 4px;
+  height: 42px;
+  margin-top: 6px;
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--on-primary);
@@ -111,29 +163,56 @@
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .submit:hover:not(:disabled) {
   background: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
 .submit:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: wait;
 }
 
 .switch {
-  margin: var(--space-xs) 0 0;
+  margin: var(--space-sm) 0 0;
   padding-top: var(--space-md);
   border-top: 1px solid var(--border);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--text-muted);
   text-align: center;
 }
 
 .switch a {
   color: var(--accent-text);
-  font-weight: 500;
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.switch a:hover {
   text-decoration: underline;
+}
+
+.authFooter {
+  margin-top: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.authFooter a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.authFooter a:hover {
+  color: var(--text);
 }
